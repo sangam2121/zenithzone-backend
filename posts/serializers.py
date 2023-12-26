@@ -6,22 +6,22 @@ from users.serializers import CustomUserSerializer
 
 class CommentSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
+    post = serializers.PrimaryKeyRelatedField(
+        queryset=Post.objects.all())
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'created_at', 'updated_at', 'author']
+        fields = ['id', 'post', 'content',
+                  'created_at', 'updated_at', 'author']
         depth = 1
 
     def create(self, validated_data):
-        user = self.context['request'].user
-        comment = Comment.objects.create(user=user, **validated_data)
+        author = self.context['request'].user
+        comment = Comment.objects.create(author=author, **validated_data)
         return comment
 
 
 class PostSerializer(serializers.ModelSerializer):
-    # author_id = serializers.PrimaryKeyRelatedField(
-    #     queryset=CustomUser.objects.all(), source='author')
-    # author = serializers.ReadOnlyField(source='author.email')
     author = CustomUserSerializer(read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
 

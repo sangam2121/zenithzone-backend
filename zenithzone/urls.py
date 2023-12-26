@@ -26,7 +26,7 @@ from django.shortcuts import redirect
 
 
 def redirect_to_login(request):
-    return redirect('/auth/login')
+    return redirect('api/auth/login')
 
 
 urlpatterns = [
