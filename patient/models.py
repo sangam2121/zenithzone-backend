@@ -7,13 +7,11 @@ from django.conf import settings
 class Patient(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
     image = models.ImageField(
         upload_to='patient/profiles', default='patient/images/default.png')
 
     def __str__(self):
-        return self.name
+        return self.user.first_name + ' ' + self.user.last_name
 
     class Meta:
         verbose_name_plural = 'Patients'

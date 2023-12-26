@@ -58,3 +58,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'first_name', 'last_name',
+                  'user_type', 'phone', 'address', 'bio')
+        extra_kwargs = {
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'user_type': {'required': True},
+        }
+        read_only_fields = ('id', 'email', 'user_type')
+        depth = 1

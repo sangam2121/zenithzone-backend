@@ -22,13 +22,21 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from django.shortcuts import redirect
+
+
+def redirect_to_login(request):
+    return redirect('/auth/login')
+
 
 urlpatterns = [
+    path('', redirect_to_login),
     path('admin/', admin.site.urls),
     path('auth/', include('users.urls')),
-    path('accounts/', include('users.urls')),
     path('api/patient/', include('patient.urls')),
     path('api/doctor/', include('doctor.urls')),
+    path('api/appointment/', include('appointment.urls')),
+    path('api/posts/', include('posts.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
