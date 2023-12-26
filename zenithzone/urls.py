@@ -32,7 +32,7 @@ def redirect_to_login(request):
 urlpatterns = [
     path('', redirect_to_login),
     path('admin/', admin.site.urls),
-    path('auth/', include('users.urls')),
+    path('api/auth/', include('users.urls')),
     path('api/patient/', include('patient.urls')),
     path('api/doctor/', include('doctor.urls')),
     path('api/appointment/', include('appointment.urls')),
