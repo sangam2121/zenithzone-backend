@@ -21,16 +21,18 @@ class DoctorListAPIView(generics.ListAPIView):
         return queryset
 
 
-class DoctorRetrieveAPIView(generics.RetrieveAPIView):
+class DoctorRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    lookup_field = 'user__id'
 
 
 class DoctorDestroyAPIView(generics.DestroyAPIView):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    lookup_field = 'user__id'
 
 
 class ReviewListCreateAPIView(generics.ListCreateAPIView):

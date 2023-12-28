@@ -15,3 +15,4 @@ class Patient(models.Model):
 
     class Meta:
         verbose_name_plural = 'Patients'
+        ordering = ['-user__first_name']
