@@ -13,6 +13,7 @@ class Doctor(models.Model):
         upload_to='doctor/profiles', default='doctor/images/default.png')
     clinic = models.ForeignKey(
         "Clinic", on_delete=models.CASCADE, null=True, blank=True)
+    appointment_fee = models.IntegerField(default=0)
 
     @property
     def get_rating(self):
