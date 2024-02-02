@@ -1,23 +1,34 @@
 from django.db import models
 from users.models import CustomUser
 import uuid
+from django.conf import settings
 
 # Create your models here.
 
 
-class Chat(models.Model):
+class ChatRoom(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sender = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='sender')
-    receiver = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='receiver')
-    message = models.CharField(max_length=1000)
-    seen = models.BooleanField(default=False)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    participant1 = models.ForeignKey(
+        CustomUser, related_name='user1', on_delete=models.CASCADE)
+    participant2 = models.ForeignKey(
+        CustomUser, related_name='user2', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return self.sender.first_name + ' ' + self.sender.last_name + ' to ' + self.receiver.first_name + ' ' + self.receiver.last_name
+        return f"{self.participant1} - {self.participant2}"
+
+
+class Message(models.Model):
+    """
+    This class represents the message model.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    chat_room = models.ForeignKey(
+        ChatRoom, related_name='messages', on_delete=models.CASCADE)
+    sender = models.ForeignKey(
+        CustomUser, related_name='messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name_plural = 'Chats'
-        ordering = ['-timestamp']
+        ordering = ('created_at', )
