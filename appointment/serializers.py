@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Appointment, Payment
+from .models import Appointment
 from doctor.models import Doctor
 from patient.models import Patient
 
@@ -14,11 +14,11 @@ class PatientAppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'doctor', 'patient', 'date', 'time', 'status']
+        fields = ['id', 'doctor', 'patient', 'date', 'time']
 
     def create(self, validated_data):
-        status = 'pending'
-        validated_data['status'] = status
+        # status = 'pending'
+        # validated_data['status'] = status
         return Appointment.objects.create(**validated_data)
 
 
@@ -31,15 +31,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'doctor', 'patient', 'date', 'time', 'status']
+        fields = ['id', 'doctor', 'patient', 'date', 'time']
 
     def create(self, validated_data):
-        status = 'pending'
-        validated_data['status'] = status
+        # status = 'pending'
+        # validated_data['status'] = status
         return Appointment.objects.create(**validated_data)
-
-
-class PaymentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Payment
-        fields = ['id', 'appointment', 'amount', 'payment_date']

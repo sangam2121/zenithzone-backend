@@ -21,6 +21,8 @@ class Post(models.Model):
         upload_to='posts/thumbnails', default='posts/images/default.png')
     author = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='posts')
+    file_upload = models.FileField(
+        upload_to='posts/files', null=True, blank=True)
     is_anonymous = models.BooleanField(default=False)
     post_type = models.CharField(max_length=100, choices=post_type)
     created_at = models.DateTimeField(auto_now_add=True)

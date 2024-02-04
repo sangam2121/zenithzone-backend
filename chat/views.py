@@ -1,10 +1,9 @@
 from django.shortcuts import render
 from users.models import CustomUser
-from .models import Chat
+from .models import ChatRoom, Message
 from rest_framework import generics
-
-
 from .serializers import MessageSerializer
+from rest_framework import viewsets
 
 
 class MessageViewSet(viewsets.ModelViewSet):

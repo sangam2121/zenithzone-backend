@@ -60,7 +60,7 @@ class ReviewRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 class ClinicListCreateAPIView(generics.ListCreateAPIView):
     queryset = Clinic.objects.all()
     serializer_class = ClinicSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         queryset = Clinic.objects.all()
