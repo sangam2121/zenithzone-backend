@@ -8,7 +8,7 @@ from osm_field.fields import LatitudeField, LongitudeField, OSMField
 
 class Location(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    address = models.CharField(max_length=100, null=True, blank=True)
+    text = models.CharField(max_length=100, null=True, blank=True)
     location = OSMField()
     location_lat = LatitudeField()
     location_lon = LongitudeField()

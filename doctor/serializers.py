@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Doctor, Clinic, Review
+from .models import Doctor, Clinic, Review, Location
 from users.serializers import CustomUserSerializer
 from patient.models import Patient
 
@@ -33,8 +33,15 @@ class DoctorSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ["id", "text", "location", "location_lat", "location_lon"]
+
+
 class ClinicSerializer(serializers.ModelSerializer):
     doctors = DoctorSerializer(many=True, read_only=True)
+    address = LocationSerializer()
 
     class Meta:
         model = Clinic
