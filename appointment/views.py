@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .serializers import AppointmentSerializer, PatientAppointmentSerializer
-from .models import Appointment
+from .models import Appointment, Payment
 from rest_framework import generics, permissions
 import json
 from decouple import config
@@ -15,6 +15,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 # login required
 from django.contrib.auth.decorators import login_required
+# json web token
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.conf import settings
+from rest_framework import exceptions
+from rest_framework import authentication
+import jwt
 
 
 class AppointmentListView(generics.ListAPIView):
@@ -29,36 +35,45 @@ class AppointmentListView(generics.ListAPIView):
 
 
 class InitPaymentView(View):
-    authentication_classes = ()
+    authentication_classes = (JWTAuthentication)
 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
-        return super(InitPaymentView, self).dispatch(request, *args, **kwargs)
-        return super().dispatch(request, *args, **kwargs)
+        response = super().dispatch(request, *args, **kwargs)
+        return response
 
     # @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
+        JWT_authenticator = JWTAuthentication()
+
+        # authenitcate() verifies and decode the token
+        # if token is invalid, it raises an exception and returns 401
+        response = JWT_authenticator.authenticate(request)
+        if response is not None:
+            # unpacking
+            user, token = response
+            # print("this is decoded token claims", token.payload)
+        else:
+            print("no token is provided in the header or the header is missing")
         doctor_id = self.request.POST.get('doctor')
         user = get_object_or_404(CustomUser, id=doctor_id)
         appointment_fee = user.doctor.appointment_fee
         url = "https://a.khalti.com/api/v2/epayment/initiate/"
-        return_url = "https://127.0.0.1:8000/api" + \
-            reverse('create-appointment')
+        return_url = "http://127.0.0.1:8000/" + \
+            reverse('callback')
         purchase_order_id = str(uuid.uuid4())
         purchase_order_name = "Appointment Fee"
 
-        # name = request.user.first_name + \
-        #     " " + request.user.last_name
-        # email = request.user.email
-        # phone = request.user.phone
-        name = "Ram"
-        email = "ram@email.com"
-        phone = "9841234567"
+        name = user.first_name + " " + user.last_name
+        email = user.email
+        phone = user.phone
+        if phone == None or phone == "":
+            phone = "9800000000"
         payload = {
             "return_url": return_url,
             "website_url": return_url,
             "public_key": config('KHALTI_PUBLIC'),
-            "amount": appointment_fee,
+            "amount": appointment_fee * 100,
             "purchase_order_id": purchase_order_id,
             "purchase_order_name": purchase_order_name,
             "customer_info": {
@@ -79,46 +94,18 @@ class InitPaymentView(View):
         new_res = json.loads(response.text)
         print(new_res)
         # if no new_res, return an error response
-        if new_res is None:
-            raise serializers.ValidationError("Payment initiation failed.")
+        # if new_res['error_key'] is not None:
+        #     raise serializers.ValidationError(
+        #         "Payment initiation failed." + new_res['error_key'])
+        payment = Payment.objects.create(
+            user=user,
+            amount=appointment_fee,
+            status='initiated',
+            # assuming 'pidx' is the transaction id
+            pidx=new_res['pidx'],
+            purchase_order_id=purchase_order_id
+        )
         return redirect(new_res['payment_url'])
-
-# @csrf_exempt
-# def init_payment(request):
-#     if request.method == 'POST':
-#         doctor_id = request.POST.get('doctor')
-#         print(request.POST)
-#         user = get_object_or_404(CustomUser, id=doctor_id)
-#         appointment_fee = user.doctor.appointment_fee
-#         url = "https://khalti.com/api/v2/payment/initiate/"
-#         return_url = reverse('create-appointment')
-#         purchase_order_id = str(uuid.uuid4())
-#         purchase_order_name = "Appointment Fee"
-#         name = request.user.first_name + \
-#             " " + request.user.last_name
-#         email = request.user.email
-#         phone = request.user.phone
-#         payload = {
-#             "public_key": config('KHALTI_PUBLIC'),
-#             "amount": appointment_fee,
-#             "purchase_order_id": purchase_order_id,
-#             "purchase_order_name": purchase_order_name,
-#             "customer_info": {
-#                 "name": name,
-#                 "email": email,
-#                 "phone": phone
-#             }
-#         }
-
-#         headers = {
-#             'Authorization': 'key' + config('KHALTI_SECRET'),
-#             'Content-Type': 'application/json',
-#         }
-#         response = requests.request(
-#             "POST", url, headers=headers, data=json.dumps(payload))
-#         new_res = json.loads(response.text)
-
-#         return redirect(new_res['payment_url'])
 
 
 class AppointmentCreateView(generics.CreateAPIView):
@@ -130,31 +117,20 @@ class AppointmentCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
-        doctor = Doctor.objects.get(id=self.request.data.get('doctor'))
+        doctor_id = self.request.data.get('doctor')
+        doctor = CustomUser.objects.get(id=doctor_id).doctor
         appointment_fee = doctor.appointment_fee
-        url = "https://a.khalti.com/api/v2/epayment/lookup/"
-        pidx = self.request.data.get('pidx')
-        # if no pidx, return an error response
-        if pidx is None:
-            raise serializers.ValidationError("Payment initiation failed.")
-        data = json.dumps({
-            'pidx': pidx
-        })
-        headers = {
-            'Authorization': 'key' + config('KHALTI_SECRET'),
-            'Content-Type': 'application/json',
-        }
-        res = requests.request('POST', url, headers=headers, data=data)
-        new_res = json.loads(res.text)
 
-        if new_res['status'] == 'Completed' and new_res['amount'] == appointment_fee:
-            # If payment is verified, create the appointment
-            patient = self.request.user.patient
-            serializer.save(patient=patient)
+        # verify payment
+        purchase_id = self.request.data.get('purchase_order_id')
+        payment = Payment.objects.get(purchase_order_id=purchase_id)
+
+        if payment.status == 'approved':
+            serializer.save()
+            payment.appointment = serializer.instance
+            payment.save()
         else:
-            # If payment is not verified, return an error response
-            raise serializers.ValidationError(
-                "Payment verification failed or insufficient amount.")
+            raise serializers.ValidationError("Payment not approved.")
 
 
 class AppointmentUpdateView(generics.RetrieveUpdateAPIView):
@@ -172,41 +148,15 @@ class AppointmentUpdateView(generics.RetrieveUpdateAPIView):
         return super(AppointmentUpdateView, self).get_serializer(*args, **kwargs)
 
 
-# class PaymentListCreateView(generics.ListCreateAPIView):
-#     queryset = Payment.objects.all()
-#     serializer_class = PaymentSerializer
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-#     def perform_create(self, serializer):
-#         # get the payment data
-#         appointment = Appointment.objects.get(id=self.kwargs['id'])
-#         serializer.save(appointment=appointment)
-
-#     def get_queryset(self):
-#         queryset = Payment.objects.all().filter(
-#             appointment__patient__user=self.request.user)
-#         return queryset
-
-
-# class PaymentUpdateRetrieveView(generics.RetrieveUpdateAPIView):
-#     queryset = Payment.objects.all()
-#     serializer_class = PaymentSerializer
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-#     lookup_field = 'id'
-
-#     def get_queryset(self):
-#         queryset = Payment.objects.all().filter(
-#             appointment__patient__user=self.request.user)
-#         return queryset
-
-
-# class PaymentDeleteView(generics.DestroyAPIView):
-#     queryset = Payment.objects.all()
-#     serializer_class = PaymentSerializer
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-#     lookup_field = 'id'
-
-#     def get_queryset(self):
-#         queryset = Payment.objects.all().filter(
-#             appointment__patient__user=self.request.user)
-#         return queryset
+class PaymentCallbackView(View):
+    def get(self, request, *args, **kwargs):
+        transaction_id = request.GET.get('transaction_id')
+        pidx = request.GET.get('pidx')
+        # update the Payment object with transaction_id and status
+        amount = request.GET.get('amount')
+        payment = Payment.objects.get(pidx=pidx)
+        if payment:
+            payment.transaction_id = transaction_id
+            payment.status = 'approved'
+            payment.save()
+        return redirect('create-appointment')

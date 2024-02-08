@@ -10,4 +10,5 @@ urlpatterns = [
     path('lists/', AppointmentListView.as_view(), name='list'),
     path('update/<slug:id>/', AppointmentUpdateView.as_view(), name='update'),
     path('pay/', InitPaymentView.as_view(), name='initiate-payment'),
+    path('callback/', PaymentCallbackView.as_view(), name='callback')
 ]
