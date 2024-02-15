@@ -4,15 +4,18 @@ from .models import ChatRoom, Message
 from rest_framework import generics
 from .serializers import MessageSerializer
 from rest_framework import viewsets
+from rest_framework.response import Response
 
 
-class MessageViewSet(viewsets.ModelViewSet):
-    queryset = Message.objects.all()
-    serializer_class = MessageSerializer
+class MessageViewSet(viewsets.ViewSet):
+    def list(self, request, chat_room_id=None):
+        queryset = Message.objects.filter(chat_room_id=chat_room_id)
+        serializer = MessageSerializer(queryset, many=True)
+        return Response(serializer.data)
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        chatroom_id = self.request.query_params.get('chatroom', None)
-        if chatroom_id is not None:
-            queryset = queryset.filter(chatroom_id=chatroom_id)
-        return queryset
+    def create(self, request, chat_room_id=None):
+        serializer = MessageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)

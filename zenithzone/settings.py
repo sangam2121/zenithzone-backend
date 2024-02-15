@@ -151,7 +151,20 @@ REST_FRAMEWORK = {
         'BLACKLIST_AFTER_ROTATION': True,
     }
 }
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_db.DjangoChannelLayer",
+#         "CONFIG": {
+#             "expiry": 60  # The number of seconds to keep messages in the queue.
+#         },
+#     },
+# }
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 # CHANNEL_LAYERS = {
 #     "default": {

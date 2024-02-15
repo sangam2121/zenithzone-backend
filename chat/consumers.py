@@ -29,10 +29,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.userId = self.scope['url_route']['kwargs']['userId']
-        otherUserId = self.scope['url_route']['kwargs']['otherUserId']
+        self.otherUserId = self.scope['url_route']['kwargs']['otherUserId']
 
         # Ensure that the room name is unique for the pair of users
-        room_names = sorted([self.userId, otherUserId])
+        room_names = sorted([self.userId, self.otherUserId])
         self.room_group_name = f'chat_{room_names[0]}_{room_names[1]}'
 
         # Join room group
