@@ -12,6 +12,17 @@ class PatientListView(generics.ListAPIView):
     serializer_class = PatientSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    ## for searching patient
+    def get_queryset(self):
+        queryset = Patient.objects.all()
+        name = self.request.GET.get('name')
+        if query:
+            queryset = queryset.filter(
+                Q(user__first_name__icontains=query) |
+                Q(user__last_name__icontains=query)
+            ).distinct()
+        return queryset
+
 
 class PatientUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Patient.objects.all()

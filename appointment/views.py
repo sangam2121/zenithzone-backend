@@ -100,7 +100,7 @@ class InitPaymentView(View):
         payment = Payment.objects.create(
             user=user,
             amount=appointment_fee,
-            status='initiated',
+            status='pending',
             # assuming 'pidx' is the transaction id
             pidx=new_res['pidx'],
             purchase_order_id=purchase_order_id
