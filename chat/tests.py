@@ -1,90 +1,99 @@
-from django.contrib.auth import get_user_model
-from rest_framework.test import APITestCase
-from rest_framework import status
+import json
+import pytest
+from chat.consumers import ChatConsumer
+from django.urls import re_path
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.testing import WebsocketCommunicator
+from django.urls import reverse
+from rest_framework.test import APIClient, APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
+from users.models import CustomUser
 from .models import ChatRoom, Message
 
 
-class ChatRoomMessageTestCase(APITestCase):
+class MessageViewSetTestCase(APITestCase):
     def setUp(self):
-        # Create two users
-        self.user1 = get_user_model().objects.create_user(
-            email='user1@example.com',
-            first_name='John',
-            last_name='Doe',
-            password='password1',
-            phone='123-456-7890',
-            address='123 Main St',
-            bio='A brief bio about user1',
-            user_type='doctor'
-        )
+        self.client = APIClient()
 
-        self.user2 = get_user_model().objects.create_user(
-            email='user2@example.com',
-            first_name='Jane',
-            last_name='Doe',
-            password='password2',
-            phone='987-654-3210',
-            address='456 Oak St',
-            bio='A brief bio about user2',
-            user_type='patient'
-        )
+        # Create users
+        self.user1 = CustomUser.objects.create_user(
+            password='testpass123', email='whoisdinanath@gmail.com')
+        self.user2 = CustomUser.objects.create_user(
+            password='testpass123', email='test2@email.com')
 
-    def test_create_and_retrieve_chat_room(self):
-        # Create a chat room
-        response = self.client.post(
-            '/api/chat/rooms', data={'members': [str(self.user1.id), str(self.user2.id)]}, format='json')
+        # Create chat room
+        self.chat_room = ChatRoom.objects.create(
+            participant1=self.user1, participant2=self.user2)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Create messages
+        Message.objects.create(content='Hello, user2!',
+                               chat_room=self.chat_room, sender=self.user1)
+        Message.objects.create(content='Hello, user1!',
+                               chat_room=self.chat_room, sender=self.user2)
 
-        # Retrieve the created chat room
+        # Get JWT token for user1
+        refresh = RefreshToken.for_user(self.user1)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+# router.register(r'(?P<chat_room_id>\d+)/messages',
+        # MessageViewSet, basename='messages')
+
+    def test_list_messages(self):
         response = self.client.get(
-            f'/api/chat/rooms/{str(self.user1.id)}/{str(self.user2.id)}/', format='json')
+            reverse('messages-list', kwargs={'chat_room_id': self.chat_room.id}))
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
 
-        # Check if the response data matches the expected structure
-        expected_data = {
-            'id': response.data['id'],
-            'user1': str(self.user1.id),
-            'user2': str(self.user2.id),
-            'participants': [
-                {'id': str(self.user1.id), 'username': 'user1'},
-                {'id': str(self.user2.id), 'username': 'user2'}
-            ]
-            # Add other expected fields based on your serializer
-        }
+    def test_create_message(self):
+        response = self.client.post(reverse('messages-list', kwargs={'chat_room_id': self.chat_room.id}), {
+                                    'content': 'New message!', 'chat_room': self.chat_room.id, 'sender': self.user1.id})
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Message.objects.count(), 3)
 
-        self.assertEqual(response.data, expected_data)
 
-    def test_create_and_retrieve_messages(self):
-        # Create a chat room
-        response = self.client.post(
-            '/api/chat/rooms', data={'members': [str(self.user1.id), str(self.user2.id)]}, format='json')
+# Define the application for the test
+application = ProtocolTypeRouter({
+    "websocket": URLRouter([
+        re_path(
+            r'ws/chat/(?P<userId>\w+)/(?P<otherUserId>\w+)/$',
+            ChatConsumer.as_asgi()
+        ),
+    ])
+})
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        chat_room_id = response.data['id']
+# Define the test
 
-        # Create a message in the chat room
-        response = self.client.post(
-            f'/api/chat/messages/{chat_room_id}', data={'content': 'Hello'}, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+@pytest.mark.asyncio
+async def test_chat_consumer():
+    # Create a WebsocketCommunicator instance for the consumer
+    communicator = WebsocketCommunicator(application, '/ws/chat/user1/user2/')
 
-        # Retrieve messages in the chat room
-        response = self.client.get(
-            f'/api/chat/messages/{chat_room_id}/', format='json')
+    # Connect to the consumer
+    connected, _ = await communicator.connect()
+    assert connected
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    # Send a message to the consumer
+    await communicator.send_to(text_data=json.dumps({
+        'action': 'new_message',
+        'message': 'Hello, world!',
+        'chat_room': 'room1',
+        'other_user': 'user2',
+        'sender': 'user1'
+    }))
 
-        # Check if the response data matches the expected structure
-        expected_data = [
-            {
-                'id': response.data[0]['id'],
-                'content': 'Hello',
-                'chat_room': str(chat_room_id),
-                'sender': str(self.user1.id)
-                # Add other expected fields based on your serializer
-            }
-        ]
+    # Receive the message the consumer
+    response = await communicator.receive_from()
 
-        self.assertEqual(response.data, expected_data)
+    # Load the response data
+    response_data = json.loads(response)
+
+    # Check the content of the response
+    assert response_data['action'] == 'new_message'
+    assert response_data['content'] == 'Hello, world!'
+    assert response_data['chat_room'] == 'room1'
+    assert response_data['sender'] == 'user1'
+
+    # Disconnect from the consumer
+    await communicator.disconnect()

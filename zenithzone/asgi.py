@@ -7,16 +7,21 @@ For more information on this file, see
 https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 """
 
-import os
 
-from channels.routing import ProtocolTypeRouter
-from django.core.asgi import get_asgi_application
-from channels.auth import AuthMiddlewareStack
-from channels.routing import URLRouter
+
 from channels.layers import get_channel_layer
-import chat.routing
+from channels.routing import URLRouter
+from channels.auth import AuthMiddlewareStack
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter
+
+import os
+import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'zenithzone.settings')
+django.setup()
+
+import chat.routing
 
 django_asgi_app = get_asgi_application()
 channel_layer = get_channel_layer()

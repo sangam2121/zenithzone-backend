@@ -3,6 +3,18 @@ from django.conf import settings
 from patient.models import Patient
 import uuid
 # Create your models here.
+from osm_field.fields import LatitudeField, LongitudeField, OSMField
+
+
+class Location(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    text = models.CharField(max_length=100, null=True, blank=True)
+    location = OSMField(lat_field='location_lat', lon_field='location_lon')
+    location_lat = LatitudeField()
+    location_lon = LongitudeField()
+
+    def __str__(self):
+        return self.text
 
 
 class Doctor(models.Model):
@@ -10,7 +22,7 @@ class Doctor(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     speciality = models.CharField(max_length=100, null=True, blank=True)
     image = models.ImageField(
-        upload_to='doctor/profiles', default='doctor/images/default.png')
+        upload_to='doctor/profiles', default='default.png')
     clinic = models.ForeignKey(
         "Clinic", on_delete=models.CASCADE, null=True, blank=True)
     appointment_fee = models.IntegerField(default=0)
@@ -38,7 +50,8 @@ class Doctor(models.Model):
 class Clinic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    address = models.CharField(max_length=100, null=True, blank=True)
+    address = models.OneToOneField(
+        "Location", on_delete=models.CASCADE, null=True, blank=True)
     phone = models.CharField(max_length=100)
 
     def __str__(self):

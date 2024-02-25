@@ -1,13 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ChatRoomView, MessageView
+from .views import MessageViewSet
 
-# router = DefaultRouter()
-# router.register(r'messages', MessageViewSet)
+router = DefaultRouter()
+router.register(r'(?P<chat_room_id>[0-9a-f-]+)/messages',
+                MessageViewSet, basename='messages')
 
-urlpatterns = [
-    # path('', include(router.urls)),
-    path('rooms', ChatRoomView.as_view()),
-    path('messages/<uuid:chatroom_id>', MessageView.as_view(), name='messages'),
-    path('users/<uuid:user_id>/chats', ChatRoomView.as_view(), name='chats'),
-]
+urlpatterns = router.urls

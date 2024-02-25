@@ -14,11 +14,11 @@ class PatientAppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'doctor', 'patient', 'date', 'time', 'status']
+        fields = ['id', 'doctor', 'patient', 'date', 'time']
 
     def create(self, validated_data):
-        status = 'pending'
-        validated_data['status'] = status
+        # status = 'pending'
+        # validated_data['status'] = status
         return Appointment.objects.create(**validated_data)
 
 
@@ -31,15 +31,26 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'doctor', 'patient', 'date', 'time', 'status']
+        fields = ['id', 'doctor', 'patient', 'date', 'time']
 
     def create(self, validated_data):
-        status = 'pending'
-        validated_data['status'] = status
+        # status = 'pending'
+        # validated_data['status'] = status
         return Appointment.objects.create(**validated_data)
 
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ['id', 'appointment', 'amount', 'payment_date']
+        fields = ['id', 'user', 'appointment',
+                  'amount', 'status', 'pidx', 'transaction_id', 'purchase_order_id']
+
+    def create(self, validated_data):
+        return Payment.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.status = validated_data.get('status', instance.status)
+        instance.transaction_id = validated_data.get(
+            'transaction_id', instance.transaction_id)
+        instance.save()
+        return instance

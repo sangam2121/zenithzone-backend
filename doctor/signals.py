@@ -7,7 +7,7 @@ from .models import Doctor
 
 @receiver(post_save, sender=CustomUser)
 def create_doctor(sender, instance, created, **kwargs):
-    print
+
     if created and instance.user_type.lower() == 'doctor':
         Doctor.objects.create(user=instance)
 

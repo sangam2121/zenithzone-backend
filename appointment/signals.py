@@ -6,10 +6,11 @@ from patient.models import Patient
 from .models import Appointment, Payment
 
 
-@receiver(post_save, sender=Payment)
-def update_payment_status(sender, instance, created, **kwargs):
-    if created:
-        appointment = Appointment.objects.get(id=instance.appointment.id)
-        appointment.payment_status = True
-        appointment.status = 'approved'
-        appointment.save()
+# @receiver(post_save, sender=Payment)
+# def update_appointment_payment_status(sender, instance, created, **kwargs):
+#     if instance.status == 'approved':
+#         instance.payment_status = True
+#         instance.appointment.save()
+#     elif instance.status == 'rejected':
+#         instance.appointment.payment_status = False
+#         instance.appointment.save()
