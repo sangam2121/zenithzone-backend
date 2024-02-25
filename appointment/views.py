@@ -21,7 +21,7 @@ from django.conf import settings
 from rest_framework import exceptions
 from rest_framework import authentication
 import jwt
-
+from doctor.models import Doctor
 
 class AppointmentListView(generics.ListAPIView):
     queryset = Appointment.objects.all()
@@ -49,21 +49,19 @@ class InitPaymentView(View):
         # authenitcate() verifies and decode the token
         # if token is invalid, it raises an exception and returns 401
         response = JWT_authenticator.authenticate(request)
+        payment_id = request.data.get('payment_id')
+        purchase_order_id = payment.purchase_order_id
+        purchase_order_name = payment.purchase_order_name
+        appointment_fee = payment.amount
         if response is not None:
             # unpacking
             user, token = response
             # print("this is decoded token claims", token.payload)
         else:
             print("no token is provided in the header or the header is missing")
-        doctor_id = self.request.POST.get('doctor')
-        user = get_object_or_404(CustomUser, id=doctor_id)
-        appointment_fee = user.doctor.appointment_fee
         url = "https://a.khalti.com/api/v2/epayment/initiate/"
         return_url = "http://127.0.0.1:8000/" + \
             reverse('callback')
-        purchase_order_id = str(uuid.uuid4())
-        purchase_order_name = "Appointment Fee"
-
         name = user.first_name + " " + user.last_name
         email = user.email
         phone = user.phone
@@ -97,14 +95,10 @@ class InitPaymentView(View):
         # if new_res['error_key'] is not None:
         #     raise serializers.ValidationError(
         #         "Payment initiation failed." + new_res['error_key'])
-        payment = Payment.objects.create(
-            user=user,
-            amount=appointment_fee,
-            status='pending',
-            # assuming 'pidx' is the transaction id
-            pidx=new_res['pidx'],
-            purchase_order_id=purchase_order_id
-        )
+        payment = Payment.objects.get(purchase_order_id=purchase_order_id)
+        payment.transaction_id = new_res['idx']
+        payment.pidx = new_res['idx']
+        payment.save()
         return redirect(new_res['payment_url'])
 
 
@@ -116,22 +110,46 @@ class AppointmentCreateView(generics.CreateAPIView):
     serializer_class = AppointmentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    # def perform_create(self, serializer):
+    #     doctor_id = self.request.data.get('doctor')
+    #     doctor = CustomUser.objects.get(id=doctor_id).doctor
+    #     appointment_fee = doctor.appointment_fee
+
+    #     # verify payment
+    #     purchase_id = self.request.data.get('purchase_order_id')
+    #     payment = Payment.objects.get(purchase_order_id=purchase_id)
+
+    #     if payment.status == 'approved':
+    #         serializer.save()
+    #         payment.appointment = serializer.instance
+    #         payment.save()
+    #     else:
+    #         raise serializers.ValidationError("Payment not approved.")
+
     def perform_create(self, serializer):
+        # create a appointment and a payment object with status pending
+        data = self.request.data
+        doctor_object = data['doctor']
         doctor_id = self.request.data.get('doctor')
-        doctor = CustomUser.objects.get(id=doctor_id).doctor
+        doctor = Doctor.objects.get(id=doctor_id)
         appointment_fee = doctor.appointment_fee
-
-        # verify payment
-        purchase_id = self.request.data.get('purchase_order_id')
-        payment = Payment.objects.get(purchase_order_id=purchase_id)
-
-        if payment.status == 'approved':
-            serializer.save()
-            payment.appointment = serializer.instance
-            payment.save()
-        else:
-            raise serializers.ValidationError("Payment not approved.")
-
+        purchase_order_id = str(uuid.uuid4())
+        purchase_order_name = "Appointment Fee"
+        payment = Payment.objects.create(
+            user=self.request.user,
+            amount=appointment_fee,
+            status='pending',
+            purchase_order_id = purchase_order_id
+        )
+        serializer.save(payment=payment, doctor=doctor, patient=self.request.user.patient)
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        appointment = Appointment.objects.get(id=response.data['id'])
+        # payment = Payment.objects.get(purchase_order_id=response.data['purchase_order_id'])
+        # response.data['purchase_order_id'] = payment.purchase_order_id
+        # response.data['payment_status'] = payment.status
+        response.data['appointment'] = appointment.id
+        return response
 
 class AppointmentUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Appointment.objects.all()

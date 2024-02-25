@@ -31,19 +31,24 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'doctor', 'patient', 'date', 'time']
+        fields = ['id', 'doctor', 'patient', 'date', 'time', 'payment']
+        read_only_fields = ['payment']
 
     def create(self, validated_data):
         # status = 'pending'
         # validated_data['status'] = status
+        # check if there is any other appointment with the same doctor, date and time (+- 3 hour)
+        # if yes, raise serializers.ValidationError("Appointment already exists")
+        # else, create the appointment
         return Appointment.objects.create(**validated_data)
 
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ['id', 'user', 'appointment',
+        fields = ['id', 'user',
                   'amount', 'status', 'pidx', 'transaction_id', 'purchase_order_id']
+        depth = 1
 
     def create(self, validated_data):
         return Payment.objects.create(**validated_data)

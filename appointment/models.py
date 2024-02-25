@@ -13,11 +13,11 @@ class Appointment(models.Model):
         "patient.Patient", on_delete=models.CASCADE, related_name='appointments')
     date = models.DateField()
     time = models.TimeField(format('%H:%M'))
-    payment_status = models.BooleanField(default=False)
+    payment = models.ForeignKey('Payment', on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.doctor.user.first_name + "_" + self.patient.user.first_name + ": " + self.status
+        return self.doctor.user.first_name + "_" + self.patient.user.first_name + ": " + self.payment.status
 
     class Meta:
         verbose_name_plural = 'Appointments'
@@ -37,11 +37,11 @@ payment_status = (
 )
 
 
+
+
 class Payment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    appointment = models.ForeignKey(
-        Appointment, on_delete=models.CASCADE, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(
         max_length=10, choices=payment_status, default='pending')
@@ -51,3 +51,5 @@ class Payment(models.Model):
 
     def __str__(self):
         return self.user.first_name + ": " + self.status + "( " + str(self.pidx) + " )"
+
+

@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from users.models import CustomUser
 from doctor.models import Doctor
@@ -14,3 +14,9 @@ from .models import Appointment, Payment
 #     elif instance.status == 'rejected':
 #         instance.appointment.payment_status = False
 #         instance.appointment.save()
+
+
+@receiver(post_delete, sender=Appointment)
+def delete_payment(sender, instance, **kwargs):
+    if instance.payment:
+        instance.payment.delete()
