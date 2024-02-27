@@ -9,12 +9,13 @@ class PatientAppointmentSerializer(serializers.ModelSerializer):
         queryset=Doctor.objects.all(), source='doctor.user')
     patient = serializers.PrimaryKeyRelatedField(
         read_only=True, default=serializers.CurrentUserDefault(), source='patient.user')
-    time = serializers.TimeField(format="%H:%M")
-    status = serializers.CharField(read_only=True)
+    # time = serializers.TimeField(format="%H:%M")
+    # status = serializers.CharField(read_only=True)
 
     class Meta:
         model = Appointment
-        fields = ['id', 'doctor', 'patient', 'date', 'time']
+        fields = ['id', 'doctor', 'patient', 'date', 'time_at', 'payment']
+        read_only_fields = ['payment']
 
     def create(self, validated_data):
         # status = 'pending'
@@ -27,11 +28,11 @@ class AppointmentSerializer(serializers.ModelSerializer):
         queryset=Doctor.objects.all(), source='doctor.user')
     patient = serializers.PrimaryKeyRelatedField(
         read_only=True, default=serializers.CurrentUserDefault(), source='patient.user')
-    time = serializers.TimeField(format="%H:%M")
+    # time = serializers.TimeField(format="%H:%M")
 
     class Meta:
         model = Appointment
-        fields = ['id', 'doctor', 'patient', 'date', 'time', 'payment']
+        fields = ['id', 'doctor', 'patient', 'date',  'time_at', 'payment']
         read_only_fields = ['payment']
 
     def create(self, validated_data):

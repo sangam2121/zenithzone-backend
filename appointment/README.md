@@ -2,155 +2,71 @@
 
 ## Endpoints
 
-### 1. Create Appointment
+### Create Appointment
 
-**URL**: `/create/`
+- **URL:** `/create/`
+- **Method:** `POST`
+- **Auth required:** Yes
+- **Data Params:** 
+    - `doctor`: ID of the doctor
+    - `date`: Date of the appointment
+    - `time_at`: Time of the appointment
+- **Success Response:**
+    - **Code:** 200
+    - **Use the payment id from the response to initiate payment**
+    - **Content:** `{ id : 12, doctor : 34, patient : 56, date : "2022-12-31", time_at : "09:00", payment : 78 }`
 
-**Method**: `POST`
+### List Appointments
 
-**Auth required**: Yes
+- **URL:** `/lists/`
+- **Method:** `GET`
+- **Auth required:** Yes
+- **Success Response:**
+    - **Code:** 200
+    - **Content:** `{ id : 12, doctor : 34, patient : 56, date : "2022-12-31", time_at : "09:00", payment : 78 }`
 
-**Data constraints**
+### Update Appointment
 
-```json
-{
-    "doctor": "[valid doctor id]",
-    "patient": "[valid patient id]",
-    "date": "[date in YYYY-MM-DD format]",
-    "time": "[time in HH:MM format]",
-    "purchase_order_id": "[valid purchase order id]"
-}
-```
+- **URL:** `/update/<id>/`
+- **Method:** `PUT`
+- **Auth required:** Yes
+- **Data Params:** 
+    - `doctor`: ID of the doctor
+    - `date`: Date of the appointment
+    - `time_at`: Time of the appointment
+- **Success Response:**
+    - **Code:** 200
+    - **Content:** `{ id : 12, doctor : 34, patient : 56, date : "2022-12-31", time_at : "09:00", payment : 78 }`
 
-**Data example**
+### Initiate Payment
 
-```json
-{
-    "doctor": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "patient": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "date": "2022-12-31",
-    "time": "15:30",
-    "purchase_order_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-}
-```
+- **URL:** `/pay/`
+- **Method:** `POST`
+- **Auth required:** Yes
+- **Data Params:** 
+    - `payment_id`: ID of the payment
+- **Success Response:**
+    - **Code:** 302
+    - **Content:** Redirects to payment URL
 
-### 2. List Appointments
+<!-- ### Payment Callback
 
-**URL**: `/lists/`
+- **URL:** `/callback/`
+- **Method:** `GET`
+- **Auth required:** No
+- **Data Params:** 
+    - `transaction_id`: ID of the transaction
+    - `pidx`: Payment index
+    - `amount`: Amount of the payment
+- **Success Response:**
+    - **Code:** 302
+    - **Content:** Redirects to create appointment URL -->
 
-**Method**: `GET`
+### List Appointments for a Doctor
 
-**Auth required**: Yes
-
-### 3. Update Appointment
-
-**URL**: `/update/<slug:id>/`
-
-**Method**: `PUT` or `PATCH`
-
-**Auth required**: Yes
-
-**Data constraints**
-
-```json
-{
-    "doctor": "[valid doctor id]",
-    "patient": "[valid patient id]",
-    "date": "[date in YYYY-MM-DD format]",
-    "time": "[time in HH:MM format]"
-}
-```
-
-**Data example**
-
-```json
-{
-    "doctor": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "patient": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "date": "2022-12-31",
-    "time": "15:30"
-}
-```
-
-### 4. Initiate Payment
-
-**URL**: `/pay/`
-
-**Method**: `POST`
-
-**Auth required**: Yes
-
-**Data constraints**
-
-```json
-{
-    "doctor": "[valid doctor id]"
-}
-```
-
-**Data example**
-
-```json
-{
-    "doctor": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-}
-```
-
-### 5. Payment Callback
-
-**URL**: `/callback/`
-
-**Method**: `GET`
-
-**Auth required**: No
-
-**Data constraints**
-
-```json
-
-
-{
-
-
-    "transaction_id": "[valid transaction id]",
-    "pidx": "[valid pidx]",
-    "amount": "[valid amount]"
-}
-```
-
-**Data example**
-
-```json
-{
-    "transaction_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "pidx": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "amount": "500.00"
-}
-```
-
-## Models
-
-### Appointment
-
-Field | Type | Description
---- | --- | ---
-id | UUID | The unique identifier for the appointment.
-doctor | ForeignKey (Doctor) | The doctor for the appointment.
-patient | ForeignKey (Patient) | The patient for the appointment.
-date | Date | The date of the appointment.
-time | Time | The time of the appointment.
-payment_status | Boolean | The payment status of the appointment.
-created_at | DateTime | The date and time the appointment was created.
-
-### Payment
-
-Field | Type | Description
---- | --- | ---
-id | UUID | The unique identifier for the payment.
-user | ForeignKey (CustomUser) | The user who made the payment.
-appointment | ForeignKey (Appointment) | The appointment the payment is for.
-amount | Decimal | The amount of the payment.
-status | Char | The status of the payment.
-pidx | Char | The pidx of the payment.
-transaction_id | Char | The transaction id of the payment.
-purchase_order_id | Char | The purchase order id of the payment.
+- **URL:** `/doctor/<doctor_id>/`
+- **Method:** `GET`
+- **Auth required:** Yes
+- **Success Response:**
+    - **Code:** 200
+    - **Content:** `{ id : 12, doctor : 34, patient : 56, date : "2022-12-31", time_at : "09:00", payment : 78 }`

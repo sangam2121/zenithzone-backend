@@ -24,7 +24,7 @@ class Doctor(models.Model):
     image = models.ImageField(
         upload_to='doctor/profiles', default='default.png')
     clinic = models.ForeignKey(
-        "Clinic", on_delete=models.CASCADE, null=True, blank=True)
+        "Clinic", on_delete=models.CASCADE, null=True, blank=True, related_name="doctors")
     appointment_fee = models.IntegerField(default=0)
 
     @property

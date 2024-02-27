@@ -21,28 +21,35 @@ class ReviewSerializer(serializers.ModelSerializer):
         return review
 
 
-class DoctorSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
-    reviews = ReviewSerializer(many=True)
-    clinic = serializers.PrimaryKeyRelatedField(
-        queryset=Clinic.objects.all())
-
-    class Meta:
-        model = Doctor
-        fields = ["user", "speciality", "image", "reviews", "clinic"]
-        depth = 1
-
-
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
         fields = ["id", "text", "location", "location_lat", "location_lon"]
 
 
-class ClinicSerializer(serializers.ModelSerializer):
-    doctors = DoctorSerializer(many=True, read_only=True)
-    address = LocationSerializer()
+class DoctorListSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer()
+    reviews = ReviewSerializer(many=True)
+    # clinic =ClinicSerializer()
 
+    class Meta:
+        model = Doctor
+        fields = ["user", "speciality", "image", "reviews"]
+        depth = 1
+
+
+class ClinicSerializer(serializers.ModelSerializer):
+    doctors = DoctorListSerializer(many=True, read_only=True)   
+    address = LocationSerializer()
     class Meta:
         model = Clinic
         fields = ["id", "name", "address", "phone", "doctors"]
+
+class DoctorSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer()
+    reviews = ReviewSerializer(many=True)
+    clinic = ClinicSerializer()
+
+    class Meta:
+        model = Doctor
+        fields = ["user", "speciality", "image", "reviews", "clinic"]
