@@ -14,7 +14,7 @@ time_choices = (
 class Appointment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     doctor = models.ForeignKey(
-        "doctor.Doctor", on_delete=models.CASCADE, related_name='appointments')
+        "doctor.Doctor", on_delete=models.CASCADE, related_name='appointments', )
     patient = models.ForeignKey(
         "patient.Patient", on_delete=models.CASCADE, related_name='appointments')
     date = models.DateField()

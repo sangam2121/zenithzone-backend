@@ -73,8 +73,11 @@ class InitPaymentView(View):
         # authenitcate() verifies and decode the token
         # if token is invalid, it raises an exception and returns 401
         response = JWT_authenticator.authenticate(request)
-        payment_id = request.GET.get('payment_id')
-        print(payment_id)
+        body_unicode = request.body.decode('utf-8')
+        body_data = json.loads(body_unicode)
+        payment_id = body_data.get('payment_id')
+        redirect_url = body_data.get('redirect_url')
+        # print(payment_id)
         if response is not None:
             # unpacking
             user, token = response
@@ -95,7 +98,7 @@ class InitPaymentView(View):
             phone = "9800000000"
         payload = {
             "return_url": return_url,
-            "website_url": return_url,
+            "website_url": redirect_url,
             "public_key": config('KHALTI_PUBLIC'),
             "amount": str(appointment_fee * 100),
             "purchase_order_id": purchase_order_id,
@@ -106,22 +109,17 @@ class InitPaymentView(View):
                 "phone": phone
             }
         }
-        print("OK")
         headers = {
             'Authorization': 'key' + " " + config('KHALTI_SECRET'),
             'Content-Type': 'application/json',
         }
-        print("NotOk")
         response = requests.request(
             "POST", url, headers=headers, data=json.dumps(payload))
-        print("OkOK")
         new_res = json.loads(response.text)
-        print(new_res)
+        # print(new_res)
         if new_res:
             try:
                 payment = Payment.objects.get(purchase_order_id=purchase_order_id)
-                # print(new_res)
-                # payment.transaction_id = new_res['pidx']
                 payment.pidx = new_res['pidx']
                 payment.save()
                 return redirect(new_res['payment_url'])
@@ -130,10 +128,6 @@ class InitPaymentView(View):
                     raise serializers.ValidationError(
                         "Payment initiation failed." + new_res['error_key'])
 
-        # if no new_res, return an error response
-        # if new_res['error_key'] is not None:
-        #     raise serializers.ValidationError(
-        #         "Payment initiation failed." + new_res['error_key'])
 
 
 
@@ -145,26 +139,10 @@ class AppointmentCreateView(generics.CreateAPIView):
     serializer_class = AppointmentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    # def perform_create(self, serializer):
-    #     doctor_id = self.request.data.get('doctor')
-    #     doctor = CustomUser.objects.get(id=doctor_id).doctor
-    #     appointment_fee = doctor.appointment_fee
-
-    #     # verify payment
-    #     purchase_id = self.request.data.get('purchase_order_id')
-    #     payment = Payment.objects.get(purchase_order_id=purchase_id)
-
-    #     if payment.status == 'approved':
-    #         serializer.save()
-    #         payment.appointment = serializer.instance
-    #         payment.save()
-    #     else:
-    #         raise serializers.ValidationError("Payment not approved.")
 
     def perform_create(self, serializer):
         # create a appointment and a payment object with status pending
         data = self.request.data
-        doctor_object = data['doctor']
         doctor_id = self.request.data.get('doctor')
         doctor = Doctor.objects.get(id=doctor_id)
         appointment_fee = doctor.appointment_fee
