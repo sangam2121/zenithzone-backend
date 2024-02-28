@@ -46,10 +46,12 @@ class ClinicSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "address", "phone", "doctors"]
 
 class DoctorSerializer(serializers.ModelSerializer):
+    # pk = serializers.CharField(source='user.pk', read_only=True)
     user = CustomUserSerializer()
     reviews = ReviewSerializer(many=True)
     clinic = ClinicSerializer()
 
     class Meta:
         model = Doctor
-        fields = ["user", "speciality", "image", "reviews", "clinic"]
+        fields = ["id","user", "speciality", "image", "reviews", "clinic"]
+        depth = 1

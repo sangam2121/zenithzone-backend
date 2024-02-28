@@ -144,6 +144,7 @@ class AppointmentCreateView(generics.CreateAPIView):
         # create a appointment and a payment object with status pending
         data = self.request.data
         doctor_id = self.request.data.get('doctor')
+        print(doctor_id)
         doctor = Doctor.objects.get(id=doctor_id)
         appointment_fee = doctor.appointment_fee
         purchase_order_id = str(uuid.uuid4())
@@ -154,7 +155,10 @@ class AppointmentCreateView(generics.CreateAPIView):
             status='pending',
             purchase_order_id = purchase_order_id
         )
+        # print(payment)
+        # print(self.request.user.patient)
         serializer.save(payment=payment, doctor=doctor, patient=self.request.user.patient)
+        # print(serializer.data)
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         appointment = Appointment.objects.get(id=response.data['id'])

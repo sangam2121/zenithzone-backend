@@ -14,7 +14,7 @@ time_choices = (
 class Appointment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     doctor = models.ForeignKey(
-        "doctor.Doctor", on_delete=models.CASCADE, related_name='appointments', )
+        "doctor.Doctor", on_delete=models.CASCADE, related_name='appointments')
     patient = models.ForeignKey(
         "patient.Patient", on_delete=models.CASCADE, related_name='appointments')
     date = models.DateField()
@@ -27,6 +27,8 @@ class Appointment(models.Model):
 
     def save(self, *args, **kwargs):
         # populate time using time_at
+        # patient = self.patient.user
+        # doctor = self.doctor.user
         if self.time_at:
             self.time = self.time_at
         if not self.id:

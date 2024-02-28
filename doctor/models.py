@@ -19,7 +19,7 @@ class Location(models.Model):
 
 class Doctor(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="doctor")
     speciality = models.CharField(max_length=100, null=True, blank=True)
     image = models.ImageField(
         upload_to='doctor/profiles', default='default.png')

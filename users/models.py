@@ -4,24 +4,27 @@ import uuid
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email,user_type, password=None, **extra_fields):
         if not email:
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        print(user_type)
+        if not user_type:
+            raise ValueError('The user_type field must be set')
+        user = self.model(user_type=user_type,email=email, **extra_fields)
         user.set_password(password)
         user.save()
         return user
 
-    def create_superuser(self, email, password=None, **extra_fields):
+    def create_superuser(self, email ,user_type, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Super User must have staff permission!")
-
+        print(user_type)
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Super User must have superuser permission!")
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(email, user_type, password, **extra_fields)
 
 
 class CustomUser(AbstractBaseUser):
@@ -41,7 +44,7 @@ class CustomUser(AbstractBaseUser):
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['user_type','first_name', 'last_name']
 
     def __str__(self):
         return self.email

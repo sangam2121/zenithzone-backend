@@ -8,4 +8,4 @@ class PatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
-        fields = ['image', 'user']
+        fields = ['id','image', 'user']
