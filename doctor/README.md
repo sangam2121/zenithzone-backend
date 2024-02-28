@@ -6,6 +6,8 @@
 
 - `GET /lists/`: Returns a list of all doctors. Requires authentication. Optional query parameters:
   - `name`: Filters doctors by first or last name starting with the provided string.
+  - `speciality`: Filters doctors by speciality containing the provided string.
+  - `clinic_name`: Filters doctors by the `id` of the associated clinic.
 
 - `PUT /update/<slug:pk>/`: Updates the details of the doctor with the given `pk`. Requires authentication and the following parameters:
   - `user`: The `id` of the user associated with the doctor.

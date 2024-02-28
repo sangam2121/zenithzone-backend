@@ -4,7 +4,9 @@ Here is the API documentation for the Django application:
 
 ### Patients
 
-- `GET /lists/`: Returns a list of all patients. Requires authentication.
+- `GET /lists/`: Returns a list of all patients. Optional query parameters:
+  - `name`: Filters patients by first or last name starting with the provided string.
+  <!-- - `user`: Filters patients by the `id` of the associated user. -->
 
 - `PUT /update/<slug:pk>/`: Updates the details of the patient with the given `pk`. Requires authentication and the following parameters:
   - `user`: The `id` of the user associated with the patient.

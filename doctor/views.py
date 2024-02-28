@@ -16,8 +16,13 @@ class DoctorListAPIView(generics.ListAPIView):
         queryset = Doctor.objects.all()
         name = self.request.query_params.get('name', None)
         if name is not None:
-            queryset = queryset.filter(Q(user__first_name__istartswith=name | Q(
-                user__last_name__istartswith=name)))
+            queryset = queryset.filter(Q(user__first_name__istartswith=name) | Q(user__last_name__istartswith=name))
+        speciality = self.request.query_params.get('speciality', None)
+        if speciality is not None:
+            queryset = queryset.filter(speciality__istartswith=speciality)
+        clinic_name = self.request.query_params.get('clinic_name', None)
+        if clinic_name is not None:
+            queryset = queryset.filter(clinic__name__istartswith=clinic_name)
         return queryset
 
 

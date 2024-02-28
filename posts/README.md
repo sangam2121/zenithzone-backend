@@ -2,7 +2,7 @@
 
 ### Posts
 
-- `GET /`: Returns a list of all posts. Requires authentication.
+- `GET /`: Returns a list of all posts. 
 
 - `POST /`: Creates a new post. Requires authentication and the following parameters:
   - `title`: Title of the post.
@@ -16,6 +16,7 @@
 - `PUT /update/<slug:pk>/`: Updates the details of a specific post identified by the post's ID. Requires authentication and the same parameters as the POST request.
 
 - `DELETE /delete/<slug:pk>/`: Deletes a specific post identified by the post's ID. Requires authentication.
+- `GET /`specific post by author=XXX&post_type=XXX&title=XXX (all 3 are optional): Returns a list of all posts filtered by the parameters.
 
 ### Comments
 

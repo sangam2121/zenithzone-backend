@@ -12,6 +12,19 @@ class PostListAPIView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = None
 
+    def get_queryset(self):
+        queryset = Post.objects.all()
+        author = self.request.query_params.get('author', None)
+        if user is not None:
+            queryset = queryset.filter(author__user__name__istartswith=author)
+        title = self.request.query_params.get('title', None)
+        if title is not None:
+            queryset = queryset.filter(title__istartswith=title)
+        post_type = self.request.query_params.get('post_type', None)
+        if post_type is not None:
+            queryset = queryset.filter(post_type__istartswith=post_type)        
+        return queryset 
+
 
 class PostUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = Post.objects.all()
