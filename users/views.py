@@ -59,4 +59,7 @@ class UserListView(generics.ListAPIView):
 class VerifyTokenView(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request):
-        return Response({'success': 'Token is valid'}, status=status.HTTP_200_OK)
+        try:
+            return Response({'message': 'Token is valid'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': f'{e}', 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
