@@ -49,6 +49,18 @@ class UserUpdateView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Profile updated successfully',
+                'user': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Profile could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer

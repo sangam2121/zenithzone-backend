@@ -44,6 +44,26 @@ class PostUpdateAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    # if not author, raise permission error
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        if instance.author != self.request.user:
+            raise PermissionError(
+                'You are not allowed to update this post'
+            )
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Post updated successfully',
+                'post': response.data
+            }
+            return response
+        except PermissionError as e:
+            return Response({'error': 'You are not the author of this post.', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'error': 'Post could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class PostDeleteAPIView(generics.DestroyAPIView):
     queryset = Post.objects.all()
@@ -55,6 +75,19 @@ class PostDeleteAPIView(generics.DestroyAPIView):
             instance.delete()
         else:
             raise PermissionError
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            response = super().destroy(request, *args, **kwargs)
+            response.data = {
+                'message': 'Post deleted successfully',
+                'post': response.data
+            }
+            return response
+        except PermissionError as e:
+            return Response({'error': 'You are not the author of this post.', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'error': 'Post could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CommentListAPIView(generics.ListCreateAPIView):
@@ -68,6 +101,24 @@ class CommentUpdateAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = CommentSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        if instance.user != self.request.user:
+            raise PermissionError
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Comment updated successfully',
+                'comment': response.data
+            }
+            return response
+        except PermissionError as e:
+            return Response({'error': 'You are not the author of this comment.', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'error': 'Comment could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CommentDeleteAPIView(generics.DestroyAPIView):
     queryset = Comment.objects.all()
@@ -79,3 +130,16 @@ class CommentDeleteAPIView(generics.DestroyAPIView):
             instance.delete()
         else:
             raise PermissionError
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            response = super().destroy(request, *args, **kwargs)
+            response.data = {
+                'message': 'Comment deleted successfully',
+                'comment': response.data
+            }
+            return response
+        except PermissionError as e:
+            return Response({'error': 'You are not the author of this comment.', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'error': 'Comment could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)

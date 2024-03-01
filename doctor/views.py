@@ -74,6 +74,43 @@ class ReviewRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        if instance.patient != self.request.user:
+            raise PermissionError(
+                'You are not allowed to update this review'
+            )
+    
+    def perform_destroy(self, instance):
+        if instance.patient != self.request.user:
+            raise PermissionError(
+                'You are not allowed to delete this review'
+            )
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Review updated successfully',
+                'review': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Review could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def destroy(self, request, *args, **kwargs):
+
+        try:
+            response = super().destroy(request, *args, **kwargs)
+            response.data = {
+                'message': 'Review deleted successfully',
+                'review': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Review could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class ClinicListCreateAPIView(generics.ListCreateAPIView):
     queryset = Clinic.objects.all()
     serializer_class = ClinicSerializer
@@ -102,3 +139,24 @@ class ClinicRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Clinic.objects.all()
     serializer_class = ClinicSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Clinic updated successfully',
+                'clinic': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Clinic could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+    def destroy(self, request, *args, **kwargs):
+        try:
+            response = super().destroy(request, *args, **kwargs)
+            response.data = {
+                'message': 'Clinic deleted successfully',
+                'clinic': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Clinic could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)

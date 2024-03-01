@@ -199,6 +199,20 @@ class AppointmentUpdateView(generics.RetrieveUpdateAPIView):
 
         return super(AppointmentUpdateView, self).get_serializer(*args, **kwargs)
 
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Appointment updated successfully',
+                'appointment': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Appointment could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class PaymentCallbackView(View):
     def get(self, request, *args, **kwargs):
