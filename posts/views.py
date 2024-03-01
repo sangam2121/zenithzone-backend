@@ -3,6 +3,8 @@ from rest_framework import viewsets, permissions, generics
 from rest_framework.views import APIView
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
+from rest_framework.response import Response
+from rest_framework import status
 # Create your views here.
 
 
@@ -15,7 +17,7 @@ class PostListAPIView(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = Post.objects.all()
         author = self.request.query_params.get('author', None)
-        if user is not None:
+        if author is not None:
             queryset = queryset.filter(author__user__name__istartswith=author)
         title = self.request.query_params.get('title', None)
         if title is not None:
@@ -24,6 +26,17 @@ class PostListAPIView(generics.ListCreateAPIView):
         if post_type is not None:
             queryset = queryset.filter(post_type__istartswith=post_type)        
         return queryset 
+
+    def create(self, request, *args, **kwargs):
+        try:
+            response = super().create(request, *args, **kwargs)
+            response.data = {
+                'message': 'Post created successfully',
+                'post': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Post could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostUpdateAPIView(generics.RetrieveUpdateAPIView):

@@ -24,7 +24,10 @@ import jwt
 from doctor.models import Doctor
 from patient.models import Patient
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework import status
+from rest_framework.views import APIView
+from django.http import JsonResponse
+
 
 class AppointmentListView(generics.ListAPIView):
     queryset = Appointment.objects.all()
@@ -64,6 +67,7 @@ class InitPaymentView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)
+
         return response
 
     # @method_decorator(login_required)
@@ -83,8 +87,14 @@ class InitPaymentView(View):
             user, token = response
             # print("this is decoded token claims", token.payload)
         else:
-            print("no token is provided in the header or the header is missing")
+            return JsonResponse({'error': 'User is not authenticated', 'status': f'{status.HTTP_401_UNAUTHORIZED}'}, status=status.HTTP_401_UNAUTHORIZED)
         payment = get_object_or_404(Payment, id=payment_id)
+        appointment = Appointment.objects.filter(payment=payment)
+        if not appointment.exists():
+            return JsonResponse({'error': 'Appointment not found', 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+        appointment = appointment.first()
+        if appointment.payment.status == 'approved':
+            return JsonResponse({'error': 'Payment has already been approved', 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
         purchase_order_id = payment.purchase_order_id
         purchase_order_name = "Appointment Fee"
         appointment_fee = payment.amount
@@ -113,20 +123,22 @@ class InitPaymentView(View):
             'Authorization': 'key' + " " + config('KHALTI_SECRET'),
             'Content-Type': 'application/json',
         }
-        response = requests.request(
-            "POST", url, headers=headers, data=json.dumps(payload))
-        new_res = json.loads(response.text)
-        # print(new_res)
+        try:
+            response = requests.request(
+                "POST", url, headers=headers, data=json.dumps(payload))
+            new_res = json.loads(response.text)
+            print(new_res)
+        except requests.exceptions.RequestException as e:
+            return JsonResponse({'error': 'Payment could not be initiated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
         if new_res:
             try:
                 payment = Payment.objects.get(purchase_order_id=purchase_order_id)
                 payment.pidx = new_res['pidx']
                 payment.save()
-                return redirect(new_res['payment_url'])
+                return JsonResponse(new_res)
             except:
                 if new_res['error_key'] is not None:
-                    raise serializers.ValidationError(
-                        "Payment initiation failed." + new_res['error_key'])
+                    return JsonResponse(new_res['error_key'])
 
 
 
@@ -149,23 +161,29 @@ class AppointmentCreateView(generics.CreateAPIView):
         appointment_fee = doctor.appointment_fee
         purchase_order_id = str(uuid.uuid4())
         purchase_order_name = "Appointment Fee"
+
         payment = Payment.objects.create(
             user=self.request.user,
             amount=appointment_fee,
             status='pending',
             purchase_order_id = purchase_order_id
         )
+
+
         # print(payment)
         # print(self.request.user.patient)
         serializer.save(payment=payment, doctor=doctor, patient=self.request.user.patient)
         # print(serializer.data)
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        appointment = Appointment.objects.get(id=response.data['id'])
-        payment = Payment.objects.get(appointment=appointment)
-        response.data['payment'] = payment.id
-        response.data['appointment'] = appointment.id
-        return response
+        try:
+            response = super().create(request, *args, **kwargs)
+            appointment = Appointment.objects.get(id=response.data['id'])
+            payment = Payment.objects.get(appointment=appointment)
+            response.data['payment'] = payment.id
+            response.data['appointment'] = appointment.id
+            return response
+        except Exception as e:
+            return Response({'error': 'Appointment could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class AppointmentUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Appointment.objects.all()
@@ -193,4 +211,4 @@ class PaymentCallbackView(View):
             payment.transaction_id = transaction_id
             payment.status = 'approved'
             payment.save()
-        return redirect('create-appointment')
+        return redirect('list')

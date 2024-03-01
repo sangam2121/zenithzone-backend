@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 from .models import Doctor, Review, Clinic
 from django.db.models import Q
 from .serializers import DoctorSerializer, ReviewSerializer, ClinicSerializer
+from rest_framework.response import Response
+from rest_framework import status
 # Create your views here.
 
 
@@ -55,6 +57,16 @@ class ReviewListCreateAPIView(generics.ListCreateAPIView):
             queryset = queryset.filter(doctor__id=doctor)
         return queryset
 
+    def create(self, request, *args, **kwargs):
+        try:
+            response = super().create(request, *args, **kwargs)
+            response.data = {
+                'message': 'Review created successfully',
+                'review': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Review could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class ReviewRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
@@ -73,6 +85,17 @@ class ClinicListCreateAPIView(generics.ListCreateAPIView):
         if name is not None:
             queryset = queryset.filter(name__istartswith=name)
         return queryset
+
+    def create(self, request, *args, **kwargs):
+        try:
+            response = super().create(request, *args, **kwargs)
+            response.data = {
+                'message': 'Clinic created successfully',
+                'clinic': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Clinic could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ClinicRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):

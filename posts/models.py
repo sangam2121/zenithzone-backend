@@ -15,7 +15,7 @@ post_type = (
 
 class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=100, unique=True)
+    title = models.CharField(max_length=100, unique=True, blank=False, null=False)
     content = models.TextField()
     thumbnail = models.ImageField(
         upload_to='posts/thumbnails', default='posts/images/default.png', null=True, blank=True)
