@@ -20,3 +20,8 @@ from .models import Appointment, Payment
 def delete_payment(sender, instance, **kwargs):
     if instance.payment:
         instance.payment.delete()
+
+@receiver(post_delete, sender=Payment)
+def delete_appointment(sender, instance, **kwargs):
+    if instance.appointment:
+        instance.appointment.delete()

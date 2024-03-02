@@ -168,7 +168,7 @@ class AppointmentCreateView(generics.CreateAPIView):
             status='pending',
             purchase_order_id = purchase_order_id
         )
-
+        print(serializer.validated_data)
 
         # print(payment)
         # print(self.request.user.patient)
@@ -214,6 +214,26 @@ class AppointmentUpdateView(generics.RetrieveUpdateAPIView):
             return Response({'error': 'Appointment could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class AppointmentDeleteView(generics.DestroyAPIView):
+    queryset = Appointment.objects.all()
+    serializer_class = AppointmentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    lookup_field = 'id'
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            response = super().destroy(request, *args, **kwargs)
+            response.data = {
+                'message': 'Appointment deleted successfully',
+                'appointment': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Appointment could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
 class PaymentCallbackView(View):
     def get(self, request, *args, **kwargs):
         transaction_id = request.GET.get('transaction_id')
@@ -225,4 +245,36 @@ class PaymentCallbackView(View):
             payment.transaction_id = transaction_id
             payment.status = 'approved'
             payment.save()
-        return redirect('list')
+        return redirect('frontend')
+
+
+class PaymentUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = AppointmentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        if instance.patient != self.request.user:
+            raise PermissionError(
+                'You are not allowed to update this payment'
+            )
+
+    def perform_destroy(self, instance):
+        if instance.patient == self.request.user:
+            instance.delete()
+        else:
+            raise PermissionError
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            response = super().destroy(request, *args, **kwargs)
+            response.data = {
+                'message': 'Payment deleted successfully',
+                'payment': response.data
+            }
+            return response
+        except PermissionError as e:
+            return Response({'error': 'You are not the owner of this payment.', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'error': 'Payment could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
