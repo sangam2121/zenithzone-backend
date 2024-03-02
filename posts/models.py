@@ -70,7 +70,7 @@ class Comment(models.Model):
 
     class Meta:
         verbose_name_plural = 'Comments'
-        unique_together = ('post', 'author')
+        unique_together = ('post','author', 'content')
         ordering = ['-created_at']
 
     @property

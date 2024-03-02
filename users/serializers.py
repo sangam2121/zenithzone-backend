@@ -110,15 +110,14 @@ class UserAuthorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'email', 
-                  'image')
+        fields = ('id', 'first_name', 'last_name', 'email', 'image')
 
     def get_image(self, obj):
-        if obj.user_type == 'doctor':
-            return DoctorAuthorSerializer(obj.doctor).data['image']
-        elif obj.user_type == 'patient':
-            return PatientAuthorSerializer(obj.patient).data['image']
+        request = self.context.get('request')
+        if obj.user_type == 'doctor' and obj.doctor.image:
+            return request.build_absolute_uri(obj.doctor.image.url)
+        elif obj.user_type == 'patient' and obj.patient.image:
+            return request.build_absolute_uri(obj.patient.image.url)
         else:
             return None
-
     
