@@ -93,7 +93,14 @@ class PostDeleteAPIView(generics.DestroyAPIView):
 class CommentListAPIView(generics.ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = Comment.objects.all()
+        post = self.request.query_params.get('post', None)
+        if post is not None:
+            queryset = queryset.filter(post__id=post)
+        return queryset
 
 
 class CommentUpdateAPIView(generics.RetrieveUpdateAPIView):

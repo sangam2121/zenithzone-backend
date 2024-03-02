@@ -1,4 +1,5 @@
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.hashers import make_password
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
@@ -18,6 +19,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['user_id'] = str(user.id)
         token['user_name'] = user.first_name + ' ' + user.last_name
         token['user_type'] = user.user_type
+        token['image'] = user.doctor.image.url if user.user_type == 'doctor' else user.patient.image.url if user.user_type == 'patient' else None
         return token
 
     class Meta:
@@ -33,8 +35,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             queryset=User.objects.all())]
     )
 
-    password = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password])
+    password = serializers.CharField(write_only=True,
+         required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
     user_type = serializers.ChoiceField(
         choices=[('doctor', 'Doctor'), ('patient', 'Patient'), ('admin', 'Admin')])
@@ -48,6 +50,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             'last_name': {'required': True},
             'user_type': {'required': True},
         }
+
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
@@ -67,6 +70,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         user.set_password(validated_data['password'])
+        print(validate_password(validated_data['password'], user))
+        print(user)
+        print(make_password(validated_data['password']))
+        print(validated_data['password'])
         user.save()
 
         return user

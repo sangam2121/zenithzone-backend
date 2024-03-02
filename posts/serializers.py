@@ -5,7 +5,7 @@ from users.serializers import CustomUserSerializer, UserAuthorSerializer
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(read_only=True)
+    author = UserAuthorSerializer(read_only=True)
     post = serializers.PrimaryKeyRelatedField(
         queryset=Post.objects.all())
 

@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 import uuid
+from django.contrib.auth.hashers import make_password
+
 
 
 class CustomUserManager(BaseUserManager):
@@ -13,6 +15,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('The user_type field must be set')
         user = self.model(user_type=user_type,email=email, **extra_fields)
         user.set_password(password)
+        print("From user manager")
+        print(make_password(password))
         user.save()
         return user
 

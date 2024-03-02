@@ -14,16 +14,22 @@ class MyObtainTokenPairView(TokenObtainPairView):
     permission_classes = (AllowAny,)
     serializer_class = MyTokenObtainPairSerializer
 
-
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
 
     def perform_create(self, serializer):
-        instance = serializer.save()
-        instance.set_password(instance.password)
-        instance.save()
+        user = serializer.validated_data
+        user = User.objects.create_user(
+            email=user['email'],
+            password=user['password'],
+            first_name=user['first_name'],
+            last_name=user['last_name'],
+            user_type=user['user_type'],
+            phone=user['phone'],
+            address=user['address'],
+        )
 
     def create(self, request, *args, **kwargs):
         try:
@@ -35,7 +41,6 @@ class RegisterView(generics.CreateAPIView):
             return response
         except Exception as e:
             return Response({'error': 'User could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class UserUpdateView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
