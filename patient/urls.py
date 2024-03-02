@@ -7,6 +7,6 @@ router = routers.DefaultRouter()
 
 urlpatterns = [
     path('lists/', views.PatientListView.as_view()),
-    path('update/<slug:pk>/', views.PatientUpdateView.as_view()),
-    path('delete/<slug:pk>/', views.PatientDeleteView.as_view()),
+    path('update/<slug:user__id>/', views.PatientUpdateView.as_view()),
+    path('delete/<slug:user__id>/', views.PatientDeleteView.as_view()),
 ]

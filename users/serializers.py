@@ -3,6 +3,8 @@ from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from users.models import CustomUser as User
+from patient.models import Patient
+from doctor.models import Doctor
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -22,6 +24,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         model = User
         fields = ('email', 'password')
 
+ 
 
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
@@ -81,3 +84,34 @@ class CustomUserSerializer(serializers.ModelSerializer):
         }
         read_only_fields = ('id', 'email', 'user_type')
         depth = 1
+
+
+class DoctorAuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Doctor
+        fields = ['id', 'image', 'user']
+
+class PatientAuthorSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer()
+
+    class Meta:
+        model = Patient
+        fields = ['id', 'image', 'user']
+
+class UserAuthorSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'email', 
+                  'image')
+
+    def get_image(self, obj):
+        if obj.user_type == 'doctor':
+            return DoctorAuthorSerializer(obj.doctor).data['image']
+        elif obj.user_type == 'patient':
+            return PatientAuthorSerializer(obj.patient).data['image']
+        else:
+            return None
+
+    

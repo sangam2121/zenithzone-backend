@@ -34,6 +34,30 @@ class DoctorRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     lookup_field = 'user__id'
 
+    # def retrieve(self, request, *args, **kwargs):
+    #     try:
+    #         response = super().retrieve(request, *args, **kwargs)
+    #         response.data = {
+    #             'message': 'Doctor retrieved successfully',
+    #             'doctor': response.data
+    #         }
+    #         return response
+    #     except Exception as e:
+    #         return Response({'error': 'Doctor could not be retrieved: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            
+            response.data = {
+                'message': 'Doctor updated successfully',
+                'doctor': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Doctor could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class DoctorDestroyAPIView(generics.DestroyAPIView):
     queryset = Doctor.objects.all()

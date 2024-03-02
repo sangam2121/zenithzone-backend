@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Post, Comment
 from users.models import CustomUser
-from users.serializers import CustomUserSerializer
+from users.serializers import CustomUserSerializer, UserAuthorSerializer
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -22,7 +22,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(read_only=True)
+    author = UserAuthorSerializer(read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:

@@ -15,7 +15,7 @@ class PatientListView(generics.ListAPIView):
     ## for searching patient
     def get_queryset(self):
         queryset = Patient.objects.all()
-        name = self.request.GET.get('name')
+        query = self.request.GET.get('name')
         if query:
             queryset = queryset.filter(
                 Q(user__first_name__icontains=query) |
