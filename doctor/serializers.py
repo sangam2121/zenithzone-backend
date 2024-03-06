@@ -38,7 +38,7 @@ class DoctorListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ["user", "speciality", "image", "reviews"]
+        fields = ["user", "speciality", "image", "reviews", "appointment_fee", "patient_checked"]
         depth = 1
 
 # this is the clinic serializer
@@ -65,7 +65,7 @@ class DoctorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ["id","user", "speciality", "image", "reviews", "clinic"]
+        fields = ["id","user", "speciality", "image", "reviews", "clinic", "appointment_fee", "patient_checked"]
         depth = 1
 
     def update(self, instance, validated_data):

@@ -35,8 +35,10 @@ class AppointmentListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        queryset = Appointment.objects.all().filter(
-            doctor__user=self.request.user)
+        doctor_id = self.request.GET.get('doctor_id')
+        queryset = Appointment.objects.all()
+        if doctor_id:
+            queryset = queryset.filter(doctor__user__id=doctor_id)
         return queryset
 
 class PatientAppointmentListView(generics.ListAPIView):
@@ -55,8 +57,8 @@ class PatientAppointmentListView(generics.ListAPIView):
         if date:
             queryset = queryset.filter(date=date)
         if doctor_id:
-            doctor_id = CustomUser.objects.get(id=doctor_id).doctor.id
-            queryset = queryset.filter(doctor__id=doctor_id)
+           
+            queryset = queryset.filter(doctor__user__id=doctor_id)
         return queryset
 
 
@@ -156,24 +158,18 @@ class AppointmentCreateView(generics.CreateAPIView):
         # create a appointment and a payment object with status pending
         data = self.request.data
         doctor_id = self.request.data.get('doctor')
-        print(doctor_id)
         doctor = Doctor.objects.get(id=doctor_id)
         appointment_fee = doctor.appointment_fee
         purchase_order_id = str(uuid.uuid4())
         purchase_order_name = "Appointment Fee"
-
+        
         payment = Payment.objects.create(
             user=self.request.user,
             amount=appointment_fee,
             status='pending',
             purchase_order_id = purchase_order_id
         )
-        print(serializer.validated_data)
-
-        # print(payment)
-        # print(self.request.user.patient)
-        serializer.save(payment=payment, doctor=doctor, patient=self.request.user.patient)
-        # print(serializer.data)
+        serializer.save(doctor=doctor,payment=payment, patient=self.request.user.patient)
     def create(self, request, *args, **kwargs):
         try:
             response = super().create(request, *args, **kwargs)
@@ -245,6 +241,13 @@ class PaymentCallbackView(View):
             payment.transaction_id = transaction_id
             payment.status = 'approved'
             payment.save()
+            appointment = Appointment.objects.get(payment=payment)
+            appointment.doctor.patient_checked += 1
+            appointment.doctor.save()
+            appointment.patient.appointment_count += 1
+            appointment.patient.save()
+            appointment.status = 'approved'
+            appointment.save()
         return redirect('frontend')
 
 
@@ -278,3 +281,32 @@ class PaymentUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
             return Response({'error': 'You are not the owner of this payment.', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return Response({'error': 'Payment could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CompleteAppointmentView(APIView):
+    def post(self, request, *args, **kwargs):
+        appointment_id = request.data.get('appointment_id')
+        appointment = Appointment.objects.get(id=appointment_id)
+        appointment.status = 'completed'
+        appointment.save()
+        return Response({'message': 'Appointment completed successfully', 'status': f'{status.HTTP_200_OK}'}, status=status.HTTP_200_OK)
+
+class RescheduleAppointmentView(APIView):
+    def post(self, request, *args, **kwargs):
+        appointment_id = request.data.get('appointment_id')
+        new_date = request.data.get('new_date')
+        new_time = request.data.get('new_time')
+        if not new_date or not new_time:
+            return Response({'error': 'New date and time must be provided', 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+        # check if no appointment exists with the same doctor, date and time
+        if (Appointment.objects.filter(doctor=appointment.doctor, date=new_date, time_at=new_time).exists()):
+            return Response({'error': 'Appointment already exists', 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+            appointment.date = new_date
+            appointment.time_at = new_time
+            appointment.save()
+        except:
+            return Response({'error': 'Appointment could not be rescheduled', 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+    ## inform the patient about the reschedule using email or sms
+        return Response({'message': 'Appointment rescheduled successfully', 'status': f'{status.HTTP_200_OK}'}, status=status.HTTP_200_OK)

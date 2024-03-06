@@ -43,6 +43,11 @@ class AppointmentSerializer(serializers.ModelSerializer):
         # else, create the appointment
         return Appointment.objects.create(**validated_data)
 
+    def update(self, instance, validated_data):
+        instance.date = validated_data.get('date', instance.date)
+        instance.time_at = validated_data.get('time_at', instance.time_at)
+        instance.save()
+        return instance
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:

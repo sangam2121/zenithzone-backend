@@ -18,10 +18,14 @@ from .models import Appointment, Payment
 
 @receiver(post_delete, sender=Appointment)
 def delete_payment(sender, instance, **kwargs):
-    if instance.payment:
+    try:
         instance.payment.delete()
+    except:
+        pass
+
 
 @receiver(post_delete, sender=Payment)
 def delete_appointment(sender, instance, **kwargs):
-    if instance.appointment:
-        instance.appointment.delete()
+    if instance.appointment_set:
+        for appointment in instance.appointment_set.all():
+            appointment.delete()

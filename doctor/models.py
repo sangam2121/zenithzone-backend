@@ -26,6 +26,7 @@ class Doctor(models.Model):
     clinic = models.ForeignKey(
         "Clinic", on_delete=models.CASCADE, null=True, blank=True, related_name="doctors")
     appointment_fee = models.IntegerField(default=0)
+    patient_checked = models.PositiveIntegerField(default=0)
 
     @property
     def get_rating(self):

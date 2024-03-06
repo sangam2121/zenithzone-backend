@@ -8,7 +8,7 @@ class PatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
-        fields = ['id','image', 'user']
+        fields = ['id','image', 'user', 'created_at', 'appointment_count']
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -28,5 +28,6 @@ class PatientSerializer(serializers.ModelSerializer):
         except:
             pass
         instance.image = validated_data.get('image', instance.image)
+        instance.created_at = validated_data.get('created_at', instance.created_at)
         instance.save()
         return instance

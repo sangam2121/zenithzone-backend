@@ -11,6 +11,14 @@ time_choices = (
     ('15:00', '15:00'),
     ('17:00', '17:00'),
 )
+status_choices = (
+    ('pending', 'Pending'),
+    ('approved', 'Approved'),
+    ('rejected', 'Rejected'),
+    ('completed', 'Completed'),
+)
+
+
 class Appointment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     doctor = models.ForeignKey(
@@ -21,9 +29,10 @@ class Appointment(models.Model):
     time_at = models.CharField(max_length=5, choices=time_choices, default='09:00')
     payment = models.ForeignKey('Payment', on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=10, choices=status_choices, default='pending')
 
     def __str__(self):
-        return self.doctor.user.first_name + "_" + self.patient.user.first_name + ": " + self.payment.status
+        return self.doctor.user.first_name + "_" + self.patient.user.first_name + ": " + self.status
 
     def save(self, *args, **kwargs):
         # populate time using time_at
@@ -52,13 +61,6 @@ class Appointment(models.Model):
         return self.patient.user.first_name + ' ' + self.patient.user.last_name
 
 
-payment_status = (
-    ('pending', 'Pending'),
-    ('approved', 'Approved'),
-    ('rejected', 'Rejected'),
-    ('completed', 'Completed'),
-)
-
 
 
 
@@ -67,7 +69,7 @@ class Payment(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(
-        max_length=10, choices=payment_status, default='pending')
+        max_length=10, choices=status_choices, default='pending')
     pidx = models.CharField(max_length=100, null=True, blank=True)
     transaction_id = models.CharField(max_length=100, null=True, blank=True)
     purchase_order_id = models.CharField(max_length=100, null=True, blank=True)
