@@ -47,8 +47,7 @@ class PatientAppointmentListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        queryset = Appointment.objects.all().filter(
-            patient__user=self.request.user)
+        queryset = Appointment.objects.all()
         date = self.request.GET.get('date')
         time = self.request.GET.get('time')
         doctor_id = self.request.GET.get('doctor_id')

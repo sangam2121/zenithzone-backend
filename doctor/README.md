@@ -31,6 +31,9 @@ The same pattern applies to `experience` and `location`.
   - `doctor` - Filter by doctor's id
   - `keyword` - Filter by keyword in review content
 - `POST /reviews/` - Create a new review
+  - `doctor` - Doctor's id
+  - `content` - Review content
+  - `rating` - Review rating
 - `GET /review/{id}/` - Retrieve a specific review
 - `PUT /review/{id}/` - Update a specific review
 - `DELETE /review/{id}/` - Delete a specific review

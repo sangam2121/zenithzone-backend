@@ -40,7 +40,7 @@ class Doctor(models.Model):
             return 0
 
     def __str__(self):
-        return self.user.first_name + ' ' + self.user.last_name
+        return str(self.user.id)
 
     class Meta:
         verbose_name_plural = 'Doctors'
@@ -76,6 +76,15 @@ class Review(models.Model):
 
     def __str__(self):
         return self.doctor.user.first_name + "_" + self.patient.user.first_name + ": " + str(self.rating)
+
+    def save(self, *args, **kwargs):
+        # check if the patient has already reviewed the doctor
+        if self.patient.reviews.filter(doctor=self.doctor).exists():
+            raise ValueError('You have already reviewed this doctor!')
+        # check if the patient has already booked an appointment with the doctor
+        if not self.patient.appointments.filter(doctor=self.doctor).exists():
+            raise ValueError('You have not booked an appointment with this doctor!')
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name_plural = 'Reviews'

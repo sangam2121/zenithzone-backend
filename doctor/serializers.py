@@ -4,8 +4,7 @@ from users.serializers import CustomUserSerializer
 from patient.models import Patient
 from patient.serializers import PatientSerializer
 from rest_framework.response import Response
-
-
+from uuid import UUID
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -20,8 +19,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         depth = 1
 
     def create(self, validated_data):
+        validated_data.pop('patient')
+        doctor = validated_data.pop('doctor')['user']
         patient = self.context['request'].user.patient
-        review = Review.objects.create(patient=patient, **validated_data)
+        review = Review.objects.create(patient=patient,doctor=doctor, **validated_data)
         return review
 
 
