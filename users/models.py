@@ -56,7 +56,6 @@ class CustomUser(AbstractBaseUser):
     def save(self, *args, **kwargs):
         if self.user_type == 'doctor':
             self.is_staff = True
-            self.doctor.image.url = Site.objects.get_current().domain + self.doctor.image.url
         if self.user_type == 'admin':
             self.is_superuser = True
             self.is_staff = True
