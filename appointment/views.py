@@ -57,8 +57,11 @@ class PatientAppointmentListView(generics.ListAPIView):
         if date:
             queryset = queryset.filter(date=date)
         if doctor_id:
-           
-            queryset = queryset.filter(doctor__user__id=doctor_id)
+            try:
+                doctor_id = CustomUser.objects.get(id=doctor_id).doctor.id
+            except:
+                doctor_id = None
+            queryset = queryset.filter(doctor__id=doctor_id)
         return queryset
 
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Doctor, Clinic, Review, Location
+from .models import Doctor, Clinic, Review, Location, Education, Experience
 from users.serializers import CustomUserSerializer
 from patient.models import Patient
 from patient.serializers import PatientSerializer
@@ -56,16 +56,84 @@ class ClinicDoctorSerializer(serializers.ModelSerializer):
         model = Clinic
         fields = ["id", "name", "address", "phone"]
 ## this is the main doctor lists serializer
+
+
+
+# class Education(models.Model):
+#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#     doctor = models.ForeignKey(
+#         Doctor, on_delete=models.CASCADE, related_name='education')
+#     level = models.CharField(max_length=10, choices=education_level, default='bachelor')
+#     school = models.CharField(max_length=100)
+#     major = models.CharField(max_length=100, null=True, blank=True)
+#     start_date = models.DateField()
+#     end_date = models.DateField()
+
+#     def __str__(self):
+#         return self.doctor.user.first_name + "_" + self.school
+
+#     class Meta:
+#         verbose_name_plural = 'Educations'
+#         ordering = ['-end_date']
+
+# class Experience(models.Model):
+#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#     doctor = models.ForeignKey(
+#         Doctor, on_delete=models.CASCADE, related_name='experience')
+#     title = models.CharField(max_length=100)
+#     company = models.CharField(max_length=100)
+#     start_date = models.DateField()
+#     end_date = models.DateField()
+
+#     def __str__(self):
+#         return self.doctor.user.first_name + "_" + self.title
+
+#     class Meta:
+#         verbose_name_plural = 'Experiences'
+#         ordering = ['-end_date']
+class EducationSerializer(serializers.ModelSerializer):
+    doctor = serializers.PrimaryKeyRelatedField(
+        queryset=Doctor.objects.all(), source='doctor.user.id', allow_null=True, required=False)
+
+    class Meta:
+        model = Education
+        fields = ["id", "doctor", "level", "school", "major", "start_date", "end_date"]
+        depth = 1
+
+    def create(self, validated_data):
+        validated_data.pop('doctor')
+        doctor = self.context['request'].user.doctor
+        print(doctor)
+        education = Education.objects.create(doctor=doctor, **validated_data)
+        return education
+
+class ExperienceSerializer(serializers.ModelSerializer):
+    doctor = serializers.PrimaryKeyRelatedField(
+        queryset=Doctor.objects.all(), source='doctor.user.id', allow_null=True, required=False)
+
+    class Meta:
+        model = Experience
+        fields = ["id", "doctor", "title", "hospital", "start_date", "end_date"]
+        depth = 1
+
+    def create(self, validated_data):
+        validated_data.pop('doctor')
+        doctor = self.context['request'].user.doctor
+        print(doctor)
+        experience = Experience.objects.create(doctor=doctor, **validated_data)
+        return experience
 class DoctorSerializer(serializers.ModelSerializer):
     # pk = serializers.CharField(source='user.pk', read_only=True)
     user = CustomUserSerializer()
     reviews = ReviewSerializer(many=True, read_only=True)
     clinic = serializers.PrimaryKeyRelatedField(
         queryset=Clinic.objects.all(), source='clinic.id', allow_null=True, required=False)
+    education = EducationSerializer(many=True, read_only=True)
+    experience = ExperienceSerializer(many=True, read_only=True)
 
     class Meta:
         model = Doctor
-        fields = ["id","user", "speciality", "image", "reviews", "clinic", "appointment_fee", "patient_checked"]
+        fields = ["id","user", "speciality", "image", "reviews", "clinic", "appointment_fee", "patient_checked", "education", "experience"]
         depth = 1
 
     def update(self, instance, validated_data):

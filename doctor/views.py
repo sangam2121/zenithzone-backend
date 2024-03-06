@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, generics
 from rest_framework.views import APIView
-from .models import Doctor, Review, Clinic
+from .models import Doctor, Review, Clinic, Education, Experience, Location
 from django.db.models import Q
-from .serializers import DoctorSerializer, ReviewSerializer, ClinicSerializer
+from .serializers import DoctorSerializer, ReviewSerializer, ClinicSerializer, EducationSerializer, ExperienceSerializer, LocationSerializer
 from rest_framework.response import Response
 from rest_framework import status
-# Create your views here.
+from rest_framework.viewsets import ModelViewSet
 
 
 class DoctorListAPIView(generics.ListAPIView):
@@ -184,3 +184,88 @@ class ClinicRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
             return response
         except Exception as e:
             return Response({'error': 'Clinic could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EducationViewSet(viewsets.ModelViewSet):
+    queryset = Education.objects.all()
+    serializer_class = EducationSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            response = super().create(request, *args, **kwargs)
+            response.data = {
+                'message': 'Education created successfully',
+                'education': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Education could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Education updated successfully',
+                'education': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Education could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    
+
+class ExperienceViewSet(viewsets.ModelViewSet):
+    queryset = Experience.objects.all()
+    serializer_class = ExperienceSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            response = super().create(request, *args, **kwargs)
+            response.data = {
+                'message': 'Experience created successfully',
+                'experience': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Experience could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Experience updated successfully',
+                'experience': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Experience could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+class LocationViewSet(viewsets.ModelViewSet):
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            response = super().create(request, *args, **kwargs)
+            response.data = {
+                'message': 'Location created successfully',
+                'location': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Location could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Location updated successfully',
+                'location': response.data
+            }
+            return response
+        except Exception as e:
+            return Response({'error': 'Location could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
