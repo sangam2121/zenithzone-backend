@@ -2,6 +2,9 @@ from rest_framework import serializers
 from .models import Appointment, Payment
 from doctor.models import Doctor
 from patient.models import Patient
+from doctor.serializers import DoctorSerializer
+from patient.serializers import PatientSerializer
+
 
 
 class PatientAppointmentSerializer(serializers.ModelSerializer):
@@ -21,6 +24,13 @@ class PatientAppointmentSerializer(serializers.ModelSerializer):
         # status = 'pending'
         # validated_data['status'] = status
         return Appointment.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.date = validated_data.get('date', instance.date)
+        instance.time_at = validated_data.get('time_at', instance.time_at)
+        instance.save()
+        return instance
+
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
@@ -65,3 +75,12 @@ class PaymentSerializer(serializers.ModelSerializer):
             'transaction_id', instance.transaction_id)
         instance.save()
         return instance
+
+class AppointmentListSerializer(serializers.ModelSerializer):
+    doctor = DoctorSerializer()
+    patient = PatientSerializer()
+
+    class Meta:
+        model = Appointment
+        fields = ['id', 'doctor', 'patient', 'date', 'time_at', 'status', 'payment']
+        depth = 1

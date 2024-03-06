@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .serializers import AppointmentSerializer, PatientAppointmentSerializer
+from .serializers import AppointmentSerializer, PatientAppointmentSerializer, AppointmentListSerializer
 from .models import Appointment, Payment
 from rest_framework import generics, permissions
 import json
@@ -29,21 +29,21 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 
 
+# class AppointmentListView(generics.ListAPIView):
+#     queryset = Appointment.objects.all()
+#     serializer_class = AppointmentSerializer
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+#     def get_queryset(self):
+#         doctor_id = self.request.GET.get('doctor_id')
+#         queryset = Appointment.objects.all()
+#         if doctor_id:
+#             queryset = queryset.filter(doctor__user__id=doctor_id)
+#         return queryset
+
 class AppointmentListView(generics.ListAPIView):
     queryset = Appointment.objects.all()
-    serializer_class = AppointmentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def get_queryset(self):
-        doctor_id = self.request.GET.get('doctor_id')
-        queryset = Appointment.objects.all()
-        if doctor_id:
-            queryset = queryset.filter(doctor__user__id=doctor_id)
-        return queryset
-
-class PatientAppointmentListView(generics.ListAPIView):
-    queryset = Appointment.objects.all()
-    serializer_class = PatientAppointmentSerializer
+    serializer_class = AppointmentListSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
