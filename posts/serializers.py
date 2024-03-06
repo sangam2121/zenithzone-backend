@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Comment
+from .models import Post, Comment, Library
 from users.models import CustomUser
 from users.serializers import CustomUserSerializer, UserAuthorSerializer
 
@@ -27,7 +27,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'content', 'thumbnail', 'author_id',
+        fields = ['id', 'title', 'content', 'thumbnail', 'author_id', 'file_upload',
                   'is_anonymous', 'post_type', 'created_at', 'updated_at', 'author', 'comments']
 
     def create(self, validated_data):
@@ -35,3 +35,16 @@ class PostSerializer(serializers.ModelSerializer):
         print(author)
         post = Post.objects.create(author=author, **validated_data)
         return post
+
+
+class LibrarySerializer(serializers.ModelSerializer):
+    author = UserAuthorSerializer(read_only=True)
+
+    class Meta:
+        model = Library
+        fields = ['id', 'title', 'content', 'file_upload', 'is_anonymous', 'created_at', 'updated_at', 'author']
+
+    def create(self, validated_data):
+        author = self.context['request'].user
+        library = Library.objects.create(author=author, **validated_data)
+        return library

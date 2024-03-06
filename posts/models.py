@@ -9,7 +9,7 @@ post_type = (
     ("INSPIRATIONAL", "Inspirational"),
     ("EXPERT_ADVICE", "Expert Advice"),
     ("NEWS", "News"),
-    ("OTHERS", "Others")
+    ("OTHERS", "Others"),
 )
 
 
@@ -76,3 +76,42 @@ class Comment(models.Model):
     @property
     def get_name(self):
         return self.author.first_name + ' ' + self.author.last_name
+
+
+class Library(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=100, unique=True, blank=False, null=False)
+    content = models.TextField(null=True, blank=True)
+    is_anonymous = models.BooleanField(default=False)
+    file_upload = models.FileField(
+        upload_to='library/files')
+    author = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='library')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Library'
+        ordering = ['-created_at']
+
+    @property
+    def anonymous(self):
+        return self.is_anonymous
+
+    @property
+    def get_name(self):
+        if self.is_anonymous:
+            return "Anonymous Participant"
+        else:
+            return self.author.first_name + ' ' + self.author.last_name
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        # if user is not doctor or admin, raise permission error
+        if not self.author.is_doctor and not self.author.is_admin:
+            raise PermissionError(
+                'You are not allowed to create library'
+            )
+        super(Library, self).save(*args, **kwargs)

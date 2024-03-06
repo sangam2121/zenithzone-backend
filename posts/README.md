@@ -1,56 +1,102 @@
-## API Endpoints
+# API Documentation
 
-### Posts
+## Library
 
-- `GET /`: Returns a list of all posts. 
+### `GET /library/`
 
-- `POST /`: Creates a new post. Requires authentication and the following parameters:
-  - `title`: Title of the post.
-  - `content`: Content of the post.
-  - `thumbnail`: Thumbnail image for the post.
-  - `author`: ID of the author.
-  - `file_upload`: File to be uploaded.
-  - `is_anonymous`: Boolean indicating if the post is anonymous.
-  - `post_type`: Type of the post.
+List all libraries.
 
-- `PUT /update/<slug:pk>/`: Updates the details of a specific post identified by the post's ID. Requires authentication and the same parameters as the POST request.
+#### Parameters
 
-- `DELETE /delete/<slug:pk>/`: Deletes a specific post identified by the post's ID. Requires authentication.
-- `GET /`specific post by author=XXX&post_type=XXX&title=XXX (all 3 are optional): Returns a list of all posts filtered by the parameters.
+- `author` (optional): Filter libraries by author's username (case-insensitive startswith match).
+- `title` (optional): Filter libraries by title (case-insensitive startswith match).
+- `author_id` (optional): Filter libraries by author's id.
 
-### Comments
+### `POST /library/`
 
-- `GET /comments/`: Returns a list of all comments.
+Create a new library.
 
-- `POST /comments/`: Creates a new comment. Requires the following parameters:
-  - `post`: ID of the post.
-  - `author`: ID of the author.
-  - `content`: Content of the comment.
+#### Body
 
-- `PUT /comments/update/<slug:pk>/`: Updates the details of a specific comment identified by the comment's ID. Requires the same parameters as the POST request.
+- `title`: The title of the library.
+- `description`: The description of the library.
 
-- `DELETE /comments/delete/<slug:pk>/`: Deletes a specific comment identified by the comment's ID.
+### `PUT /library/{id}/`
 
-## Models
+Update a library.
 
-### Post
+#### Body
 
-- `id`: UUID field, primary key.
-- `title`: CharField, max length 100, unique.
-- `content`: TextField.
-- `thumbnail`: ImageField, with a default image.
-- `author`: ForeignKey to CustomUser.
-- `file_upload`: FileField.
-- `is_anonymous`: BooleanField, default False.
-- `post_type`: CharField, max length 100, choices defined by `post_type`.
-- `created_at`: DateTimeField, auto_now_add=True.
-- `updated_at`: DateTimeField, auto_now=True.
+- `title`: The new title of the library.
+- `description`: The new description of the library.
 
-### Comment
+### `DELETE /library/{id}/`
 
-- `id`: UUID field, primary key.
-- `post`: ForeignKey to Post.
-- `author`: ForeignKey to CustomUser.
-- `content`: TextField.
-- `created_at`: DateTimeField, auto_now_add=True.
-- `updated_at`: DateTimeField, auto_now=True.
+Delete a library.
+
+## Posts
+
+### `GET /lists`
+
+List all posts.
+
+#### Parameters
+
+- `author` (optional): Filter posts by author's username (case-insensitive startswith match).
+- `title` (optional): Filter posts by title (case-insensitive startswith match).
+- `post_type` (optional): Filter posts by post type (case-insensitive startswith match).
+
+### `POST /lists`
+
+Create a new post.
+
+#### Body
+
+- `title`: The title of the post.
+- `content`: The content of the post.
+- `post_type`: The type of the post.
+
+### `PUT /update/{id}/`
+
+Update a post.
+
+#### Body
+
+- `title`: The new title of the post.
+- `content`: The new content of the post.
+- `post_type`: The new type of the post.
+
+### `DELETE /delete/{id}/`
+
+Delete a post.
+
+## Comments
+
+### `GET /comments/`
+
+List all comments.
+
+#### Parameters
+
+- `post` (optional): Filter comments by post id.
+
+### `POST /comments/`
+
+Create a new comment.
+
+#### Body
+
+- `content`: The content of the comment.
+- `post`: The id of the post the comment is for.
+
+### `PUT /comments/update/{id}/`
+
+Update a comment.
+
+#### Body
+
+- `content`: The new content of the comment.
+
+### `DELETE /comments/delete/{id}/`
+
+Delete a comment.

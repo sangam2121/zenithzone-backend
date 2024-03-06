@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, generics
 from rest_framework.views import APIView
-from .models import Post, Comment
-from .serializers import PostSerializer, CommentSerializer
+from .models import Post, Comment, Library
+from .serializers import PostSerializer, CommentSerializer, LibrarySerializer
 from rest_framework.response import Response
 from rest_framework import status
 # Create your views here.
@@ -49,13 +49,13 @@ class PostUpdateAPIView(generics.RetrieveUpdateAPIView):
         instance = serializer.save()
         if instance.author != self.request.user:
             raise PermissionError(
-                'You are not allowed to update this post'
+                'You are not allowed to update this post/journal'
             )
     def update(self, request, *args, **kwargs):
         try:
             response = super().update(request, *args, **kwargs)
             response.data = {
-                'message': 'Post updated successfully',
+                'message': 'Post/Journal updated successfully',
                 'post': response.data
             }
             return response
@@ -150,3 +150,77 @@ class CommentDeleteAPIView(generics.DestroyAPIView):
             return Response({'error': 'You are not the author of this comment.', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return Response({'error': 'Comment could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class LibraryViewSet(viewsets.ModelViewSet):
+    queryset = Library.objects.all()
+    serializer_class = LibrarySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        if instance.author != self.request.user:
+            raise PermissionError
+
+    def perform_destroy(self, instance):
+        if instance.author == self.request.user:
+            instance.delete()
+        else:
+            raise PermissionError
+
+    def create(self, request, *args, **kwargs):
+        try:
+            response = super().create(request, *args, **kwargs)
+            response.data = {
+                'message': 'Library created successfully',
+                'library': response.data
+            }
+            return response
+        except PermissionError as e:
+            return Response({'error': 'You are not allowed to create library', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'error': 'Library could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            response = super().update(request, *args, **kwargs)
+            response.data = {
+                'message': 'Library updated successfully',
+                'library': response.data
+            }
+            return response
+        except PermissionError as e:
+            return Response({'error': 'You are not the author of this library.', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'error': 'Library could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            response = super().destroy(request, *args, **kwargs)
+            response.data = {
+                'message': 'Library deleted successfully',
+                'library': response.data
+            }
+            return response
+        except PermissionError as e:
+            return Response({'error': 'You are not the author of this library.', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response({'error': 'Library could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_queryset(self):
+        queryset = Library.objects.all()
+        author = self.request.query_params.get('author', None)
+        if author is not None:
+            queryset = queryset.filter(author__user__name__istartswith=author)
+        title = self.request.query_params.get('title', None)
+        if title is not None:
+            queryset = queryset.filter(title__istartswith=title)
+        author_id = self.request.query_params.get('author_id', None)
+        if author_id is not None:
+            queryset = queryset.filter(author__id=author_id)
+        return queryset
