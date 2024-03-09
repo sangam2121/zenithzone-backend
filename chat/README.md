@@ -1,52 +1,95 @@
-# Chat Application API Documentation
+# Chat API Documentation
 
 ## Endpoints
 
-### 1. Chat Rooms
+### 1. Create Chat Room
 
-#### 1.1 Create/List Chat Rooms
+- **URL:** `/chatrooms/create`
+- **Method:** `POST`
+- **Data Params:**
+    - `participant1`: User ID of the first participant
+    - `participant2`: User ID of the second participant
+
+### 2. List Chat Rooms
 
 - **URL:** `/chatrooms/`
-- **Method:** `GET` | `POST`
-- **Required Parameters:** None
-- **Optional Parameters:** None
-- **Data Parameters (POST):** 
-  - `participant1`: UUID of the first participant (required)
-  - `participant2`: UUID of the second participant (required)
+- **Method:** `GET`
+- **Query Params:**
+    - `participant`: User ID of the participant to filter chat rooms
 
-#### 1.2 Update/Delete a Chat Room
+### 3. Create Message
 
-- **URL:** `/chatrooms/<UUID:id>/`
-- **Method:** `PUT` | `PATCH` | `DELETE`
-- **Required Parameters:** `id` - UUID of the chat room
-- **Optional Parameters:** None
-- **Data Parameters (PUT/PATCH):** 
-  - `participant1`: UUID of the first participant (optional)
-  - `participant2`: UUID of the second participant (optional)
+- **URL:** `/messages/create`
+- **Method:** `POST`
+- **Data Params:**
+    - `chat_room`: Chat Room ID where the message will be sent
+    - `content`: Content of the message
 
-### 2. Messages
-
-#### 2.1 Create/List Messages
+### 4. List Messages
 
 - **URL:** `/messages/`
-- **Method:** `GET` | `POST`
-- **Required Parameters:** None
-- **Optional Parameters:** `chat_room` - UUID of the chat room to filter messages
-- **Data Parameters (POST):** 
-  - `chat_room`: UUID of the chat room (required)
-  - `content`: Text content of the message (required)
+- **Method:** `GET`
+- **Query Params:**
+    - `chat_room`: Chat Room ID to filter messages
 
-#### 2.2 Update/Delete a Message
+## Success Response
 
-- **URL:** `/messages/<UUID:id>/`
-- **Method:** `PUT` | `PATCH` | `DELETE`
-- **Required Parameters:** `id` - UUID of the message
-- **Optional Parameters:** None
-- **Data Parameters (PUT/PATCH):** 
-  - `content`: Text content of the message (optional)
+- **Code:** `200 OK`
+- **Content:** 
+    - `message`: Success message
+    - `chat_room` or `message`: Created or retrieved object data
+
+## Error Response
+
+- **Code:** `400 BAD REQUEST`
+- **Content:** 
+    - `error`: Error message
+    - `status`: HTTP status code
+
+- **Code:** `403 FORBIDDEN`
+- **Content:** 
+    - `error`: Error message
+    - `status`: HTTP status code
+  - Apologies for the oversight. Here are the missing endpoints:
+
+### 5. Update Chat Room
+
+- **URL:** `/chatrooms/<id>/`
+- **Method:** `PUT`
+- **URL Params:**
+    - `id`: ID of the chat room to be updated
+- **Data Params:**
+    - `participant1`: User ID of the first participant
+    - `participant2`: User ID of the second participant
+
+### 6. Delete Chat Room
+
+- **URL:** `/chatrooms/<id>/`
+- **Method:** `DELETE`
+- **URL Params:**
+    - `id`: ID of the chat room to be deleted
+
+### 7. Update Message
+
+- **URL:** `/messages/<id>/`
+- **Method:** `PUT`
+- **URL Params:**
+    - `id`: ID of the message to be updated
+- **Data Params:**
+    - `chat_room`: Chat Room ID where the message will be sent
+    - `content`: Content of the message
+
+### 8. Delete Message
+
+- **URL:** `/messages/<id>/`
+- **Method:** `DELETE`
+- **URL Params:**
+    - `id`: ID of the message to be deleted
+
+For the update and delete endpoints, the user must be a participant in the chat room or the author of the message. Otherwise, a `403 FORBIDDEN` response will be returned.
 
 ## Notes
 
-- All endpoints require authentication. The user must be logged in.
-- For creating a chat room or a message, the authenticated user must be one of the participants.
-- For updating or deleting a chat room or a message, the authenticated user must be a participant in the chat room or the author of the message, respectively.
+- All endpoints require authentication.
+- All data parameters and query parameters are optional unless stated otherwise.
+- All endpoints return JSON data.

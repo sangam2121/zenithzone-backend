@@ -48,6 +48,22 @@ class ChatRoomSerializer(serializers.ModelSerializer):
         model = ChatRoom
         fields = ['id', 'participant1', 'participant2']
 
+class ChatRoomListSerializer(serializers.ModelSerializer):
+    participant1 = CustomUserSerializer()
+    participant2 = CustomUserSerializer()
+
+    class Meta:
+        model = ChatRoom
+        fields = ['id', 'participant1', 'participant2']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['participant1'] = CustomUserSerializer(instance.participant1).data
+        data['participant2'] = CustomUserSerializer(instance.participant2).data
+        return data
+
+
+
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -62,3 +78,18 @@ class MessageSerializer(serializers.ModelSerializer):
 
     def get_username(self, obj):
         return obj.sender.first_name + " " + obj.sender.last_name
+
+
+class MessageListSerializer(serializers.ModelSerializer):
+    sender = CustomUserSerializer()
+    chat_room = ChatRoomListSerializer()
+
+    class Meta:
+        model = Message
+        fields = ['id', 'chat_room', 'sender',
+                  'content', 'created_at']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['sender'] = CustomUserSerializer(instance.sender).data
+        return data

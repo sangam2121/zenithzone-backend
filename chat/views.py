@@ -2,28 +2,37 @@ from django.shortcuts import render
 from users.models import CustomUser
 from .models import ChatRoom, Message
 from rest_framework import generics
-from .serializers import MessageSerializer, ChatRoomSerializer
+from .serializers import MessageSerializer, ChatRoomSerializer, ChatRoomListSerializer, MessageListSerializer
 from rest_framework import viewsets
 from rest_framework.response import Response
 # Q
 from django.db.models import Q
 from rest_framework import status
+# get or create chat room
 
 
-class ChatRoomCreateListAPIView(generics.ListCreateAPIView):
+
+class ChatRoomCreateAPIView(generics.CreateAPIView):
     queryset = ChatRoom.objects.all()
     serializer_class = ChatRoomSerializer
 
-    def get_queryset(self):
-        queryset = ChatRoom.objects.all().filter()
-        queryset = queryset.filter(
-                Q(participant1=self.request.user) | Q(participant2=self.request.user))
-        return queryset
-
     def perform_create(self, serializer):
-        if serializer.validated_data['participant1'] != self.request.user and serializer.validated_data['participant2'] != self.request.user:
+        participant1 = serializer.validated_data['participant1']
+        participant2 = serializer.validated_data['participant2']
+
+        if participant1 != self.request.user and participant2 != self.request.user:
             raise PermissionError("You are not allowed to create chat room.")
-        serializer.save()
+
+        chat_room, created = ChatRoom.objects.get_or_create(
+            participant1=participant1,
+            participant2=participant2,
+            defaults={'participant1': participant1, 'participant2': participant2}
+        )
+
+        if created:
+            serializer.save()
+        else:
+            raise ValidationError("Chat room already exists.")
 
     def create(self, request, *args, **kwargs):
         try:
@@ -36,6 +45,18 @@ class ChatRoomCreateListAPIView(generics.ListCreateAPIView):
         except Exception as e:
             return Response({'error': 'Chat room could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
+class ChatRoomListAPIView(generics.ListAPIView):
+    queryset = ChatRoom.objects.all()
+    serializer_class = ChatRoomListSerializer
+
+    def get_queryset(self):
+        queryset = ChatRoom.objects.all().filter()
+        queryset = queryset.filter(
+                Q(participant1=self.request.user) | Q(participant2=self.request.user))
+        participant = self.request.query_params.get('participant', None)
+        if participant is not None:
+            queryset = queryset.filter(Q(participant1=participant) | Q(participant2=participant))
+        return queryset
 
 class ChatRoomUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ChatRoom.objects.all()
@@ -78,32 +99,11 @@ class ChatRoomUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         except Exception as e:
             return Response({'error': 'Chat room could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
-# class MessageViewSet(viewsets.ViewSet):
-#     def list(self, request, chat_room_id=None):
-#         queryset = Message.objects.filter(chat_room_id=chat_room_id)
-#         serializer = MessageSerializer(queryset, many=True)
-#         return Response(serializer.data)
-
-#     def create(self, request, chat_room_id=None):
-#         serializer = MessageSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=201)
-#         return Response(serializer.errors, status=400)
 
 
-class MessageCreateListAPIView(generics.ListCreateAPIView):
+class MessageCreateAPIView(generics.CreateAPIView):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-
-    def get_queryset(self):
-        queryset = Message.objects.all()
-        queryset = queryset.filter(
-                Q(chat_room__participant1=self.request.user) | Q(chat_room__participant2=self.request.user))
-        chat_room = self.request.query_params.get('chat_room', None)
-        if chat_room is not None:
-            queryset = queryset.filter(chat_room=chat_room)
-        return queryset
 
     def perform_create(self, serializer):
         if serializer.validated_data['sender'] != self.request.user:
@@ -120,6 +120,19 @@ class MessageCreateListAPIView(generics.ListCreateAPIView):
             return response
         except Exception as e:
             return Response({'error': 'Message could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+
+class MessageListAPIView(generics.ListAPIView):
+    queryset = Message.objects.all()
+    serializer_class = MessageListSerializer
+
+    def get_queryset(self):
+        queryset = Message.objects.all()
+        queryset = queryset.filter(
+                Q(chat_room__participant1=self.request.user) | Q(chat_room__participant2=self.request.user))
+        chat_room = self.request.query_params.get('chat_room', None)
+        if chat_room is not None:
+            queryset = queryset.filter(chat_room=chat_room)
+        return queryset
 
 class MessageUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Message.objects.all()
