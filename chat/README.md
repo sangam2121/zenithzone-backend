@@ -1,47 +1,52 @@
-# API Documentation
+# Chat Application API Documentation
 
 ## Endpoints
 
-### Chat
+### 1. Chat Rooms
 
-- `GET /<chat_room_id>/messages/`: Returns a list of all messages in the chat room with the given `chat_room_id`. Requires authentication.
+#### 1.1 Create/List Chat Rooms
 
-- `POST /<chat_room_id>/messages/`: Creates a new message in the chat room with the given `chat_room_id`. Requires authentication and the following parameters:
-  - `content`: The content of the message.
-  - `chat_room`: The `id` of the chat room where the message is posted.
-  - `sender`: The `id` of the user who sends the message.
+- **URL:** `/chatrooms/`
+- **Method:** `GET` | `POST`
+- **Required Parameters:** None
+- **Optional Parameters:** None
+- **Data Parameters (POST):** 
+  - `participant1`: UUID of the first participant (required)
+  - `participant2`: UUID of the second participant (required)
 
-## Models
+#### 1.2 Update/Delete a Chat Room
 
-### ChatRoom
+- **URL:** `/chatrooms/<UUID:id>/`
+- **Method:** `PUT` | `PATCH` | `DELETE`
+- **Required Parameters:** `id` - UUID of the chat room
+- **Optional Parameters:** None
+- **Data Parameters (PUT/PATCH):** 
+  - `participant1`: UUID of the first participant (optional)
+  - `participant2`: UUID of the second participant (optional)
 
-- `id`: UUIDField, primary key, auto-generated, not editable.
-- `participant1`: ForeignKey to the CustomUser model, related name 'user1'.
-- `participant2`: ForeignKey to the CustomUser model, related name 'user2'.
-- `name`: CharField, can be null or blank.
+### 2. Messages
 
-### Message
+#### 2.1 Create/List Messages
 
-- `id`: UUIDField, primary key, auto-generated, not editable.
-- `chat_room`: ForeignKey to the ChatRoom model, related name 'messages'.
-- `sender`: ForeignKey to the CustomUser model, related name 'messages'.
-- `content`: TextField.
-- `created_at`: DateTimeField, auto_now_add is True.
+- **URL:** `/messages/`
+- **Method:** `GET` | `POST`
+- **Required Parameters:** None
+- **Optional Parameters:** `chat_room` - UUID of the chat room to filter messages
+- **Data Parameters (POST):** 
+  - `chat_room`: UUID of the chat room (required)
+  - `content`: Text content of the message (required)
 
-## WebSocket
+#### 2.2 Update/Delete a Message
 
-- `ws/chat/<userId>/<otherUserId>/`: Establishes a WebSocket connection between two users with the given `userId` and `otherUserId`. The following actions can be performed:
-  - `new_message`: Sends a new message. Requires the following parameters:
-    - `action`: Must be 'new_message'.
-    - `message`: The content of the message.
-    - `sender`: The `id` of the user who sends the message.
-    - `chat_room`: The `id` of the chat room where the message is posted.
-    - `other_user`: The `id` of the other user in the chat room.
-  - `typing`: Indicates that the user is typing. Requires the following parameters:
-    - `action`: Must be 'typing'.
-    - `chat_room`: The `id` of the chat room where the user is typing.
-    - `other_user`: The `id` of the other user in the chat room.
+- **URL:** `/messages/<UUID:id>/`
+- **Method:** `PUT` | `PATCH` | `DELETE`
+- **Required Parameters:** `id` - UUID of the message
+- **Optional Parameters:** None
+- **Data Parameters (PUT/PATCH):** 
+  - `content`: Text content of the message (optional)
 
-## Permissions
+## Notes
 
-All endpoints and WebSocket connections require authentication. The user must be authenticated to access the endpoints and establish a WebSocket connection. If the user is not authenticated, a 401 Unauthorized response will be returned.
+- All endpoints require authentication. The user must be logged in.
+- For creating a chat room or a message, the authenticated user must be one of the participants.
+- For updating or deleting a chat room or a message, the authenticated user must be a participant in the chat room or the author of the message, respectively.

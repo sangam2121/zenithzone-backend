@@ -56,42 +56,8 @@ class ClinicDoctorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clinic
         fields = ["id", "name", "address", "phone"]
-## this is the main doctor lists serializer
 
 
-
-# class Education(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     doctor = models.ForeignKey(
-#         Doctor, on_delete=models.CASCADE, related_name='education')
-#     level = models.CharField(max_length=10, choices=education_level, default='bachelor')
-#     school = models.CharField(max_length=100)
-#     major = models.CharField(max_length=100, null=True, blank=True)
-#     start_date = models.DateField()
-#     end_date = models.DateField()
-
-#     def __str__(self):
-#         return self.doctor.user.first_name + "_" + self.school
-
-#     class Meta:
-#         verbose_name_plural = 'Educations'
-#         ordering = ['-end_date']
-
-# class Experience(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     doctor = models.ForeignKey(
-#         Doctor, on_delete=models.CASCADE, related_name='experience')
-#     title = models.CharField(max_length=100)
-#     company = models.CharField(max_length=100)
-#     start_date = models.DateField()
-#     end_date = models.DateField()
-
-#     def __str__(self):
-#         return self.doctor.user.first_name + "_" + self.title
-
-#     class Meta:
-#         verbose_name_plural = 'Experiences'
-#         ordering = ['-end_date']
 class EducationSerializer(serializers.ModelSerializer):
     doctor = serializers.PrimaryKeyRelatedField(
         queryset=Doctor.objects.all(), source='doctor.user.id', allow_null=True, required=False)

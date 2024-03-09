@@ -35,15 +35,10 @@ class Appointment(models.Model):
         return self.doctor.user.first_name + "_" + self.patient.user.first_name + ": " + self.status
 
     def save(self, *args, **kwargs):
-        # populate time using time_at
-        # patient = self.patient.user
-        # doctor = self.doctor.user
         if self.time_at:
             self.time = self.time_at
         if not self.id:
-            # check if there is any other appointment with the same doctor, date and time (+- 3 hour)
-            # if yes, raise serializers.ValidationError("Appointment already exists")
-            # else, create the appointment
+            # check if there is any other appointment with the same doctor, date and time 
             appointments = Appointment.objects.filter(
                 doctor=self.doctor, date=self.date, time_at=self.time_at)
             if appointments.exists():

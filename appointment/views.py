@@ -20,7 +20,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.conf import settings
 from rest_framework import exceptions
 from rest_framework import authentication
-import jwt
+import jwt, uuid    
 from doctor.models import Doctor
 from patient.models import Patient
 from rest_framework.response import Response
@@ -160,11 +160,11 @@ class AppointmentCreateView(generics.CreateAPIView):
         # create a appointment and a payment object with status pending
         data = self.request.data
         doctor_id = self.request.data.get('doctor')
+        print(doctor_id)
         doctor = Doctor.objects.get(id=doctor_id)
         appointment_fee = doctor.appointment_fee
         purchase_order_id = str(uuid.uuid4())
         purchase_order_name = "Appointment Fee"
-        
         payment = Payment.objects.create(
             user=self.request.user,
             amount=appointment_fee,
@@ -172,6 +172,7 @@ class AppointmentCreateView(generics.CreateAPIView):
             purchase_order_id = purchase_order_id
         )
         serializer.save(doctor=doctor,payment=payment, patient=self.request.user.patient)
+        print(serializer.data)
     def create(self, request, *args, **kwargs):
         try:
             response = super().create(request, *args, **kwargs)
@@ -179,6 +180,7 @@ class AppointmentCreateView(generics.CreateAPIView):
             payment = Payment.objects.get(appointment=appointment)
             response.data['payment'] = payment.id
             response.data['appointment'] = appointment.id
+            print(response.data)
             return response
         except Exception as e:
             return Response({'error': 'Appointment could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
