@@ -8,7 +8,7 @@ from rest_framework import status
 # Create your views here.
 
 
-class PostListAPIView(generics.ListCreateAPIView):
+class PostCreateListAPIView(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]

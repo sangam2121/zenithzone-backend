@@ -93,8 +93,10 @@ class DoctorSerializer(serializers.ModelSerializer):
     # pk = serializers.CharField(source='user.pk', read_only=True)
     user = CustomUserSerializer()
     reviews = ReviewSerializer(many=True, read_only=True)
-    clinic = serializers.PrimaryKeyRelatedField(
-        queryset=Clinic.objects.all(), source='clinic.id', allow_null=True, required=False)
+    # clinic = serializers.PrimaryKeyRelatedField(
+    #     queryset=Clinic.objects.all(), source='clinic.id', allow_null=True, required=False)
+    clinic = serializers.SlugRelatedField(
+        queryset=Clinic.objects.all(), slug_field='name', allow_null=True, required=False)
     education = EducationSerializer(many=True, read_only=True)
     experience = ExperienceSerializer(many=True, read_only=True)
 
@@ -104,19 +106,20 @@ class DoctorSerializer(serializers.ModelSerializer):
         depth = 1
 
     def update(self, instance, validated_data):
-
-        user_data = validated_data.pop('user')
-        user = instance.user
-        user.first_name = user_data.get('first_name', user.first_name)
-        user.last_name = user_data.get('last_name', user.last_name)
-        user.email = user_data.get('email', user.email)
-        user.phone = user_data.get('phone', user.phone)
-        user.address = user_data.get('address', user.address)
-        user.save()
-        clinic_data = validated_data.pop('clinic')
-        clinic = instance.clinic
-        clinic.name = clinic_data.get('name', clinic.name)
-        clinic.save()
+        if 'user' in validated_data:
+            user_data = validated_data.pop('user')
+            user = instance.user
+            user.first_name = user_data.get('first_name', user.first_name)
+            user.last_name = user_data.get('last_name', user.last_name)
+            user.email = user_data.get('email', user.email)
+            user.phone = user_data.get('phone', user.phone)
+            user.address = user_data.get('address', user.address)
+            user.bio = user_data.get('bio', user.bio)
+            user.save()
+        clinic_name = validated_data.pop('clinic', None)
+        if clinic_name is not None:
+            clinic = Clinic.objects.get(name=clinic_name)
+            instance.clinic = clinic
         instance.speciality = validated_data.get('speciality', instance.speciality)
         instance.image = validated_data.get('image', instance.image)
         instance.appointment_fee = validated_data.get('appointment_fee', instance.appointment_fee)

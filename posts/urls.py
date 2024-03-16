@@ -9,7 +9,7 @@ router.register(r'library', LibraryViewSet)
 
 urlpatterns = [
      path('', include(router.urls)),
-    path('lists', PostListAPIView.as_view(), name='post-list'),
+    path('lists/', PostCreateListAPIView.as_view(), name='post-list'),
     path('update/<slug:pk>/', PostUpdateAPIView.as_view(), name='post-update'),
     path('delete/<slug:pk>/', PostDeleteAPIView.as_view(), name='post-delete'),
 

@@ -70,10 +70,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         user.set_password(validated_data['password'])
-        print(validate_password(validated_data['password'], user))
-        print(user)
-        print(make_password(validated_data['password']))
-        print(validated_data['password'])
         user.save()
 
         return user

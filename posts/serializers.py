@@ -32,7 +32,6 @@ class PostSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         author = self.context['request'].user
-        print(author)
         post = Post.objects.create(author=author, **validated_data)
         return post
 
