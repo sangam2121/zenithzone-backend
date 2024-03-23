@@ -68,9 +68,7 @@ class EducationSerializer(serializers.ModelSerializer):
         depth = 1
 
     def create(self, validated_data):
-        validated_data.pop('doctor')
         doctor = self.context['request'].user.doctor
-        print(doctor)
         education = Education.objects.create(doctor=doctor, **validated_data)
         return education
 
@@ -84,14 +82,13 @@ class ExperienceSerializer(serializers.ModelSerializer):
         depth = 1
 
     def create(self, validated_data):
-        validated_data.pop('doctor')
         doctor = self.context['request'].user.doctor
         print(doctor)
         experience = Experience.objects.create(doctor=doctor, **validated_data)
         return experience
 class DoctorSerializer(serializers.ModelSerializer):
     # pk = serializers.CharField(source='user.pk', read_only=True)
-    user = CustomUserSerializer()
+    user = CustomUserSerializer(required=False)
     reviews = ReviewSerializer(many=True, read_only=True)
     # clinic = serializers.PrimaryKeyRelatedField(
     #     queryset=Clinic.objects.all(), source='clinic.id', allow_null=True, required=False)
@@ -104,6 +101,7 @@ class DoctorSerializer(serializers.ModelSerializer):
         model = Doctor
         fields = ["id","user", "speciality", "image", "reviews", "clinic", "appointment_fee", "patient_checked", "education", "experience"]
         depth = 1
+    
 
     def update(self, instance, validated_data):
         if 'user' in validated_data:

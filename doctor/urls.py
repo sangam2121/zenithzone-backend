@@ -22,5 +22,4 @@ urlpatterns = [
     path('update/<slug:user__id>/', views.DoctorRetrieveUpdateAPIView.as_view()),
     path('delete/<slug:user__id>/', views.DoctorDestroyAPIView.as_view()),
     path('clinic/<slug:pk>/', views.ClinicRetrieveUpdateDestroyAPIView.as_view()),
-
 ]
