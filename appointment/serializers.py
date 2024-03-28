@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Appointment, Payment
 from doctor.models import Doctor
 from patient.models import Patient
-from doctor.serializers import DoctorSerializer
+from doctor.serializers import DoctorListSerializer
 from patient.serializers import PatientSerializer
 
 
@@ -77,7 +77,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         return instance
 
 class AppointmentListSerializer(serializers.ModelSerializer):
-    doctor = DoctorSerializer()
+    doctor = DoctorListSerializer()
     patient = PatientSerializer()
 
     class Meta:
