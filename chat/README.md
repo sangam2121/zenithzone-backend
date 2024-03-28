@@ -1,95 +1,63 @@
-# Chat API Documentation
+## WebSocket API Documentation
 
-## Endpoints
+### WebSocket Connection
 
-### 1. Create Chat Room
+To establish a WebSocket connection from frontend, we can use the native WebSocket API or libraries like `socket.io-client`.
 
-- **URL:** `/chatrooms/create`
-- **Method:** `POST`
-- **Data Params:**
-    - `participant1`: User ID of the first participant
-    - `participant2`: User ID of the second participant
+The WebSocket URL should be in the following format:
 
-### 2. List Chat Rooms
+```
+ws://<your-server-url>/ws/chat/<userId>/<otherUserId>/
+```
 
-- **URL:** `/chatrooms/`
-- **Method:** `GET`
-- **Query Params:**
-    - `participant`: User ID of the participant to filter chat rooms
+Replace `<your-server-url>`, `<userId>`, and `<otherUserId>` with your actual server URL and the IDs of the users participating in the chat.
 
-### 3. Create Message
+### Sending Messages
 
-- **URL:** `/messages/create`
-- **Method:** `POST`
-- **Data Params:**
-    - `chat_room`: Chat Room ID where the message will be sent
-    - `content`: Content of the message
+To send a message, you need to send a JSON string through the WebSocket connection. The JSON string should have the following structure:
 
-### 4. List Messages
+```json
+{
+    "action": "new_message",
+    "chat_room": "<chat_room_id>",
+    "other_user": "<other_user_id>",
+    "message": "<message_content>",
+    "sender": "<sender_id>"
+}
+```
 
-- **URL:** `/messages/`
-- **Method:** `GET`
-- **Query Params:**
-    - `chat_room`: Chat Room ID to filter messages
+Replace `<chat_room_id>`, `<other_user_id>`, `<message_content>`, and `<sender_id>` with your actual values.
 
-## Success Response
+### Receiving Messages
 
-- **Code:** `200 OK`
-- **Content:** 
-    - `message`: Success message
-    - `chat_room` or `message`: Created or retrieved object data
+When a new message is sent, the server will send a JSON string through the WebSocket connection. The JSON string will have the following structure:
 
-## Error Response
+```json
+{
+    "action": "new_message",
+    "id": "<message_id>",
+    "chat_room": "<chat_room_id>",
+    "sender": "<sender_id>",
+    "content": "<message_content>",
+    "created_at": "<message_creation_time>"
+}
+```
 
-- **Code:** `400 BAD REQUEST`
-- **Content:** 
-    - `error`: Error message
-    - `status`: HTTP status code
+You can listen for incoming messages and handle them in your React frontend.
 
-- **Code:** `403 FORBIDDEN`
-- **Content:** 
-    - `error`: Error message
-    - `status`: HTTP status code
-  - Apologies for the oversight. Here are the missing endpoints:
+### Typing Indicator
 
-### 5. Update Chat Room
+To indicate that a user is typing, you can send a JSON string through the WebSocket connection with the following structure:
 
-- **URL:** `/chatrooms/<id>/`
-- **Method:** `PUT`
-- **URL Params:**
-    - `id`: ID of the chat room to be updated
-- **Data Params:**
-    - `participant1`: User ID of the first participant
-    - `participant2`: User ID of the second participant
+```json
+{
+    "action": "typing",
+    "chat_room": "<chat_room_id>",
+    "other_user": "<other_user_id>",
+    "sender": "<sender_id>"
+}
+```
 
-### 6. Delete Chat Room
+The server will forward this message to the other user in the chat room.
 
-- **URL:** `/chatrooms/<id>/`
-- **Method:** `DELETE`
-- **URL Params:**
-    - `id`: ID of the chat room to be deleted
-
-### 7. Update Message
-
-- **URL:** `/messages/<id>/`
-- **Method:** `PUT`
-- **URL Params:**
-    - `id`: ID of the message to be updated
-- **Data Params:**
-    - `chat_room`: Chat Room ID where the message will be sent
-    - `content`: Content of the message
-
-### 8. Delete Message
-
-- **URL:** `/messages/<id>/`
-- **Method:** `DELETE`
-- **URL Params:**
-    - `id`: ID of the message to be deleted
-
-For the update and delete endpoints, the user must be a participant in the chat room or the author of the message. Otherwise, a `403 FORBIDDEN` response will be returned.
-
-## Notes
-
-- All endpoints require authentication.
-- All data parameters and query parameters are optional unless stated otherwise.
-- All endpoints return JSON data.
+Please note that this is a basic documentation based on your provided code. You might need to adjust it according to your actual implementation and requirements.

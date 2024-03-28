@@ -51,6 +51,7 @@ class AppointmentListView(generics.ListAPIView):
         date = self.request.GET.get('date')
         time = self.request.GET.get('time')
         doctor_id = self.request.GET.get('doctor_id')
+        patient_id = self.request.GET.get('patient_id')
         if time:
             queryset = queryset.filter(time_at=time)
         if date:
@@ -61,6 +62,13 @@ class AppointmentListView(generics.ListAPIView):
             except:
                 doctor_id = None
             queryset = queryset.filter(doctor__id=doctor_id)
+        if patient_id:
+            try:
+                patient_id = CustomUser.objects.get(id=patient_id).patient.id
+            except:
+                patient_id = None
+            queryset = queryset.filter(patient__id=patient_id)
+        
         return queryset
 
 
@@ -252,7 +260,7 @@ class PaymentCallbackView(View):
             appointment.patient.save()
             appointment.status = 'approved'
             appointment.save()
-        return redirect('frontend')
+        return redirect('front-end')
 
 
 class PaymentUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):

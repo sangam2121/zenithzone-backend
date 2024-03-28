@@ -111,6 +111,7 @@ class Education(models.Model):
     class Meta:
         verbose_name_plural = 'Educations'
         ordering = ['-end_date']
+        unique_together = ['doctor', 'school', 'level']
 
 class Experience(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -127,3 +128,4 @@ class Experience(models.Model):
     class Meta:
         verbose_name_plural = 'Experiences'
         ordering = ['-end_date']
+        unique_together = ['doctor', 'hospital', 'title']

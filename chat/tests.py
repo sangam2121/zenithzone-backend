@@ -17,9 +17,9 @@ class MessageViewSetTestCase(APITestCase):
 
         # Create users
         self.user1 = CustomUser.objects.create_user(
-            password='testpass123', email='whoisdinanath@gmail.com')
+            password='testpass123', email='whoisdinanath@gmail.com', user_type='doctor')
         self.user2 = CustomUser.objects.create_user(
-            password='testpass123', email='test2@email.com')
+            password='testpass123', email='test2@email.com', user_type='patient')
 
         # Create chat room
         self.chat_room = ChatRoom.objects.create(
