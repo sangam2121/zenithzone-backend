@@ -100,16 +100,18 @@ class ReviewRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        if instance.patient != self.request.user:
+        if instance.patient.user != self.request.user:
             raise PermissionError(
                 'You are not allowed to update this review'
             )
     
     def perform_destroy(self, instance):
-        if instance.patient != self.request.user:
+        if instance.patient.user != self.request.user:
+            print(instance.patient, self.request.user)
             raise PermissionError(
                 'You are not allowed to delete this review'
             )
+        instance.delete()
 
     def update(self, request, *args, **kwargs):
         try:
@@ -123,7 +125,6 @@ class ReviewRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
             return Response({'error': 'Review could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
     
     def destroy(self, request, *args, **kwargs):
-
         try:
             response = super().destroy(request, *args, **kwargs)
             response.data = {

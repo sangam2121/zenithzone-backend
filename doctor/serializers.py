@@ -11,7 +11,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     doctor = serializers.PrimaryKeyRelatedField(
         queryset=Doctor.objects.all(), source='doctor.user')
     patient = serializers.PrimaryKeyRelatedField(
-        queryset=Patient.objects.all(), source='patient.user')
+        queryset=Patient.objects.all(), source='patient.user', allow_null=True, required=False)
 
     class Meta:
         model = Review
