@@ -39,7 +39,7 @@ class DoctorListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ["user", "speciality", "image", "reviews", "appointment_fee", "patient_checked"]
+        fields = ["id","user", "speciality", "image", "reviews", "appointment_fee", "patient_checked"]
         depth = 1
 
 # this is the clinic serializer
