@@ -4,7 +4,7 @@ from .models import Patient
 
 
 class PatientSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
+    user = CustomUserSerializer(required=False)
 
     class Meta:
         model = Patient
@@ -24,8 +24,9 @@ class PatientSerializer(serializers.ModelSerializer):
             user.email = user_data.get('email', user.email)
             user.phone = user_data.get('phone', user.phone)
             user.address = user_data.get('address', user.address)
+            user.bio = user_data.get('bio', user.bio)
             user.save()
-        except:
+        except KeyError:
             pass
         instance.image = validated_data.get('image', instance.image)
         instance.created_at = validated_data.get('created_at', instance.created_at)

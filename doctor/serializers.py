@@ -103,7 +103,7 @@ class ExperienceSerializer(serializers.ModelSerializer):
 class DoctorSerializer(serializers.ModelSerializer):
     # pk = serializers.CharField(source='user.pk', read_only=True)
     user = CustomUserSerializer(required=False)
-    reviews = ReviewSerializer(many=True, read_only=True)
+    reviews = ReviewListSerializer(many=True, read_only=True)
     # clinic = serializers.PrimaryKeyRelatedField(
     #     queryset=Clinic.objects.all(), source='clinic.id', allow_null=True, required=False)
     clinic = serializers.SlugRelatedField(
