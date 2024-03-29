@@ -3,7 +3,7 @@ from rest_framework import viewsets, permissions, generics
 from rest_framework.views import APIView
 from .models import Doctor, Review, Clinic, Education, Experience, Location
 from django.db.models import Q
-from .serializers import DoctorSerializer, ReviewSerializer, ClinicSerializer, EducationSerializer, ExperienceSerializer, LocationSerializer
+from .serializers import DoctorSerializer, ReviewSerializer, ClinicSerializer, EducationSerializer, ExperienceSerializer, LocationSerializer, ReviewListSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
@@ -66,9 +66,9 @@ class DoctorDestroyAPIView(generics.DestroyAPIView):
     lookup_field = 'user__id'
 
 
-class ReviewListCreateAPIView(generics.ListCreateAPIView):
+class ReviewListAPIView(generics.ListAPIView):
     queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
+    serializer_class = ReviewListSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
@@ -80,6 +80,21 @@ class ReviewListCreateAPIView(generics.ListCreateAPIView):
         if doctor is not None:
             queryset = queryset.filter(doctor__id=doctor)
         return queryset
+
+class ReviewCreateAPIView(generics.CreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    # def get_queryset(self):
+    #     queryset = Review.objects.all()
+    #     doctor = self.request.query_params.get('doctor', None)
+    #     keyword = self.request.query_params.get('keyword', None)
+    #     if keyword is not None:
+    #         queryset = queryset.filter(content__icontains=keyword)
+    #     if doctor is not None:
+    #         queryset = queryset.filter(doctor__id=doctor)
+    #     return queryset
 
     def create(self, request, *args, **kwargs):
         try:
@@ -104,6 +119,8 @@ class ReviewRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
             raise PermissionError(
                 'You are not allowed to update this review'
             )
+        
+        
     
     def perform_destroy(self, instance):
         if instance.patient.user != self.request.user:

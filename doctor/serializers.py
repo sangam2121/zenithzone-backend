@@ -31,6 +31,15 @@ class ReviewSerializer(serializers.ModelSerializer):
         return review
 
 
+class ReviewListSerializer(serializers.ModelSerializer):
+    doctor = serializers.PrimaryKeyRelatedField(
+        queryset=Doctor.objects.all(), source='doctor.user')
+    patient = PatientSerializer()
+    class Meta:
+        model = Review
+        fields = ["id", "doctor", "patient", "comment", "rating"]
+        depth = 1
+
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
