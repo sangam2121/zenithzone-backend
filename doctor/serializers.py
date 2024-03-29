@@ -19,9 +19,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         depth = 1
 
     def create(self, validated_data):
-        validated_data.pop('patient')
+        try:
+            patientNULL = validated_data.pop('patient')
+        except KeyError:
+            patientNULL = None
+        print(patientNULL)
         doctor = validated_data.pop('doctor')['user']
         patient = self.context['request'].user.patient
+        print(patient)
         review = Review.objects.create(patient=patient,doctor=doctor, **validated_data)
         return review
 
