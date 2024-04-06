@@ -17,6 +17,7 @@ class PatientSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         try:
+            print(validated_data)
             user_data = validated_data.pop('user')
             user = instance.user
             user.first_name = user_data.get('first_name', user.first_name)

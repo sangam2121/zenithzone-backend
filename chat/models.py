@@ -89,3 +89,6 @@ class Message(models.Model):
 
     class Meta:
         ordering = ('created_at', )
+
+    def __str__(self):
+        return f"{self.sender} - {self.chat_room} - {self.content}"
