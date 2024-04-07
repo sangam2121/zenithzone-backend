@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, generics
 from rest_framework.views import APIView
-from .models import Doctor, Review, Clinic, Education, Experience, Location
+from .models import Doctor, Review, Clinic, Education, Experience
 from django.db.models import Q
-from .serializers import DoctorSerializer, ReviewSerializer, ClinicSerializer, EducationSerializer, ExperienceSerializer, LocationSerializer, ReviewListSerializer
+from .serializers import DoctorSerializer, ReviewSerializer, ClinicSerializer, EducationSerializer, ExperienceSerializer,  ReviewListSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
@@ -33,17 +33,6 @@ class DoctorRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = DoctorSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     lookup_field = 'user__id'
-
-    # def retrieve(self, request, *args, **kwargs):
-    #     try:
-    #         response = super().retrieve(request, *args, **kwargs)
-    #         response.data = {
-    #             'message': 'Doctor retrieved successfully',
-    #             'doctor': response.data
-    #         }
-    #         return response
-    #     except Exception as e:
-    #         return Response({'error': 'Doctor could not be retrieved: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
     def update(self, request, *args, **kwargs):
@@ -85,16 +74,6 @@ class ReviewCreateAPIView(generics.CreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    # def get_queryset(self):
-    #     queryset = Review.objects.all()
-    #     doctor = self.request.query_params.get('doctor', None)
-    #     keyword = self.request.query_params.get('keyword', None)
-    #     if keyword is not None:
-    #         queryset = queryset.filter(content__icontains=keyword)
-    #     if doctor is not None:
-    #         queryset = queryset.filter(doctor__id=doctor)
-    #     return queryset
 
     def create(self, request, *args, **kwargs):
         try:
@@ -260,30 +239,3 @@ class ExperienceViewSet(viewsets.ModelViewSet):
             return response
         except Exception as e:
             return Response({'error': 'Experience could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
-
-class LocationViewSet(viewsets.ModelViewSet):
-    queryset = Location.objects.all()
-    serializer_class = LocationSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def create(self, request, *args, **kwargs):
-        try:
-            response = super().create(request, *args, **kwargs)
-            response.data = {
-                'message': 'Location created successfully',
-                'location': response.data
-            }
-            return response
-        except Exception as e:
-            return Response({'error': 'Location could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    def update(self, request, *args, **kwargs):
-        try:
-            response = super().update(request, *args, **kwargs)
-            response.data = {
-                'message': 'Location updated successfully',
-                'location': response.data
-            }
-            return response
-        except Exception as e:
-            return Response({'error': 'Location could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)

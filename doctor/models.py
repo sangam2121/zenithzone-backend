@@ -3,18 +3,7 @@ from django.conf import settings
 from patient.models import Patient
 import uuid
 # Create your models here.
-from osm_field.fields import LatitudeField, LongitudeField, OSMField
 
-
-class Location(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    text = models.CharField(max_length=100, null=True, blank=True)
-    location = OSMField(lat_field='location_lat', lon_field='location_lon')
-    location_lat = LatitudeField()
-    location_lon = LongitudeField()
-
-    def __str__(self):
-        return self.text
 
 
 class Doctor(models.Model):
@@ -51,8 +40,8 @@ class Doctor(models.Model):
 class Clinic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    address = models.OneToOneField(
-        "Location", on_delete=models.CASCADE, null=True, blank=True)
+    address_lat = models.CharField(max_length=100)
+    address_lon = models.CharField(max_length=100)
     phone = models.CharField(max_length=100)
 
     def __str__(self):
@@ -84,6 +73,8 @@ class Review(models.Model):
         # check if the patient has already booked an appointment with the doctor
         if not self.patient.appointments.filter(doctor=self.doctor).exists():
             raise ValueError('You have not booked an appointment with this doctor!')
+        if not self.patient.appointments.filter(doctor=self.doctor, status='completed').exists():
+            raise ValueError('You have not completed the appointment with this doctor!')
         super().save(*args, **kwargs)
 
     class Meta:

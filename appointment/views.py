@@ -88,6 +88,7 @@ class InitPaymentView(View):
 
         # authenitcate() verifies and decode the token
         # if token is invalid, it raises an exception and returns 401
+        print("here")
         response = JWT_authenticator.authenticate(request)
         body_unicode = request.body.decode('utf-8')
         body_data = json.loads(body_unicode)
@@ -150,7 +151,7 @@ class InitPaymentView(View):
                 return JsonResponse(new_res)
             except:
                 if new_res['error_key'] is not None:
-                    return JsonResponse(new_res['error_key'])
+                    return JsonResponse(new_res['error_key'], safe=False)
 
 
 
@@ -179,8 +180,11 @@ class AppointmentCreateView(generics.CreateAPIView):
             status='pending',
             purchase_order_id = purchase_order_id
         )
-        serializer.save(doctor=doctor,payment=payment, patient=self.request.user.patient)
-        print(serializer.data)
+        try:
+            serializer.save(doctor=doctor,payment=payment, patient=self.request.user.patient)
+        except Exception as e:
+            payment.delete()
+            raise serializers.ValidationError('Appointment could not be created: {}'.format(str(e)))
     def create(self, request, *args, **kwargs):
         try:
             response = super().create(request, *args, **kwargs)
@@ -244,6 +248,7 @@ class AppointmentDeleteView(generics.DestroyAPIView):
 
 class PaymentCallbackView(View):
     def get(self, request, *args, **kwargs):
+        print("request here")
         transaction_id = request.GET.get('transaction_id')
         pidx = request.GET.get('pidx')
         # update the Payment object with transaction_id and status
@@ -252,14 +257,18 @@ class PaymentCallbackView(View):
         if payment:
             payment.transaction_id = transaction_id
             payment.status = 'approved'
+            print(payment.status)
             payment.save()
+            print(payment.status)
             appointment = Appointment.objects.get(payment=payment)
             appointment.doctor.patient_checked += 1
             appointment.doctor.save()
             appointment.patient.appointment_count += 1
             appointment.patient.save()
             appointment.status = 'approved'
+            print(appointment.status)
             appointment.save()
+            print(appointment.status)
         return redirect('front-end')
 
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Doctor, Clinic, Review, Location, Education, Experience
+from .models import Doctor, Clinic, Review, Education, Experience
 from users.serializers import CustomUserSerializer
 from patient.models import Patient
 from patient.serializers import PatientSerializer
@@ -23,10 +23,8 @@ class ReviewSerializer(serializers.ModelSerializer):
             patientNULL = validated_data.pop('patient')
         except KeyError:
             patientNULL = None
-        print(patientNULL)
         doctor = validated_data.pop('doctor')['user']
         patient = self.context['request'].user.patient
-        print(patient)
         review = Review.objects.create(patient=patient,doctor=doctor, **validated_data)
         return review
 
@@ -40,10 +38,6 @@ class ReviewListSerializer(serializers.ModelSerializer):
         fields = ["id", "doctor", "patient", "comment", "rating"]
         depth = 1
 
-class LocationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Location
-        fields = ["id", "text", "location", "location_lat", "location_lon"]
 
 # this is the doctor list serializer used to serialize doctor list in clinic
 class DoctorListSerializer(serializers.ModelSerializer):
@@ -59,17 +53,15 @@ class DoctorListSerializer(serializers.ModelSerializer):
 # this is the clinic serializer
 class ClinicSerializer(serializers.ModelSerializer):
     doctors = DoctorListSerializer(many=True, read_only=True)   
-    address = LocationSerializer()
     class Meta:
         model = Clinic
-        fields = ["id", "name", "address", "phone", "doctors"]
+        fields = ["id", "name", "address_lat", "address_lon", "phone", "doctors"]
 
 # secondary clinic serializer, supposed to be used to serialize clinic for doctor list
 class ClinicDoctorSerializer(serializers.ModelSerializer):
-    address = LocationSerializer()
     class Meta:
         model = Clinic
-        fields = ["id", "name", "address", "phone"]
+        fields = ["id", "name", "address_lat", "address_lon", "phone"]
 
 
 class EducationSerializer(serializers.ModelSerializer):

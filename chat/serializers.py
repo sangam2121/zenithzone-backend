@@ -16,14 +16,18 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     def get_pp1(self, obj):
         if obj.participant1.user_type == 'doctor':
             return obj.participant1.doctor.image.url
-        else:
+        elif obj.participant1.user_type == 'patient':
             return obj.participant1.patient.image.url
+        #return none if the user is not a doctor or patient
+        return None
 
     def get_pp2(self, obj):
         if obj.participant2.user_type == 'doctor':
             return obj.participant2.doctor.image.url
-        else:
-            return obj.participant2.patient.image.url
+        elif obj.participant1.user_type == 'patient':
+            return obj.participant1.patient.image.url
+        #return none if the user is not a doctor or patient
+        return None
         
     def get_last_message(self, obj):
         try:
