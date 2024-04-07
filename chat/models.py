@@ -71,6 +71,10 @@ class ChatRoom(models.Model):
         CustomUser, related_name='user2', on_delete=models.CASCADE)
     name = models.CharField(max_length=255, blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        if self.name is None:
+            self.name = f"{self.participant1.first_name} - {self.participant2.first_name}"
+
     def __str__(self):
         return f"{self.participant1} - {self.participant2}"
 
