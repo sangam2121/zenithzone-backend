@@ -29,7 +29,7 @@ class RegisterView(generics.CreateAPIView):
             user_type=user['user_type'],
             phone=user['phone'],
             address=user['address'],
-            bio=user['bio'] if user['bio'] else None,
+            bio=user.get('bio', None),
         )
 
     def create(self, request, *args, **kwargs):
