@@ -17,6 +17,8 @@ class ChatRoom(models.Model):
     def save(self, *args, **kwargs):
         if self.name is None:
             self.name = f"{self.participant1.first_name} - {self.participant2.first_name}"
+        super(ChatRoom, self).save(*args, **kwargs)
+        
 
     def __str__(self):
         return f"{self.participant1} - {self.participant2}"

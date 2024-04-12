@@ -58,7 +58,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         participant1 = await sync_to_async(CustomUser.objects.get, thread_sensitive=True)(pk=participant1)
         participant2 = await sync_to_async(CustomUser.objects.get, thread_sensitive=True)(pk=participant2)
         print(f"Participant1: {participant1}")
-
+        print(f"Participant2: {participant2}")
         self.chat_room, created = await sync_to_async(ChatRoom.objects.get_or_create, thread_sensitive=True)(
                     participant1=participant1, participant2=participant2)
         chat_room_id = self.chat_room.id
