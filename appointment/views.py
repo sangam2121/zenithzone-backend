@@ -29,17 +29,6 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 
 
-# class AppointmentListView(generics.ListAPIView):
-#     queryset = Appointment.objects.all()
-#     serializer_class = AppointmentSerializer
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-#     def get_queryset(self):
-#         doctor_id = self.request.GET.get('doctor_id')
-#         queryset = Appointment.objects.all()
-#         if doctor_id:
-#             queryset = queryset.filter(doctor__user__id=doctor_id)
-#         return queryset
 
 class AppointmentListView(generics.ListAPIView):
     queryset = Appointment.objects.all()
@@ -88,7 +77,6 @@ class InitPaymentView(View):
 
         # authenitcate() verifies and decode the token
         # if token is invalid, it raises an exception and returns 401
-        print("here")
         response = JWT_authenticator.authenticate(request)
         body_unicode = request.body.decode('utf-8')
         body_data = json.loads(body_unicode)
@@ -248,7 +236,6 @@ class AppointmentDeleteView(generics.DestroyAPIView):
 
 class PaymentCallbackView(View):
     def get(self, request, *args, **kwargs):
-        print("request here")
         transaction_id = request.GET.get('transaction_id')
         pidx = request.GET.get('pidx')
         # update the Payment object with transaction_id and status
@@ -257,18 +244,14 @@ class PaymentCallbackView(View):
         if payment:
             payment.transaction_id = transaction_id
             payment.status = 'approved'
-            print(payment.status)
             payment.save()
-            print(payment.status)
             appointment = Appointment.objects.get(payment=payment)
             appointment.doctor.patient_checked += 1
             appointment.doctor.save()
             appointment.patient.appointment_count += 1
             appointment.patient.save()
             appointment.status = 'approved'
-            print(appointment.status)
             appointment.save()
-            print(appointment.status)
         return redirect('front-end')
 
 
