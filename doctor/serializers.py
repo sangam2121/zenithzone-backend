@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Doctor, Clinic, Review, Education, Experience
+from .models import Doctor, Review, Education, Experience
 from users.serializers import CustomUserSerializer
 from patient.models import Patient
 from patient.serializers import PatientSerializer
@@ -47,21 +47,21 @@ class DoctorListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ["id","user", "speciality", "image", "reviews", "appointment_fee", "patient_checked"]
+        fields = ["id","user", "speciality", "image", "reviews", "appointment_fee", "patient_checked", "clinic_name", "clinic_address_lat", "clinic_address_lon"]
         depth = 1
 
 # this is the clinic serializer
-class ClinicSerializer(serializers.ModelSerializer):
-    doctors = DoctorListSerializer(many=True, read_only=True)   
-    class Meta:
-        model = Clinic
-        fields = ["id", "name", "address_lat", "address_lon", "phone", "doctors"]
+# class ClinicSerializer(serializers.ModelSerializer):
+#     doctors = DoctorListSerializer(many=True, read_only=True)   
+#     class Meta:
+#         model = Clinic
+#         fields = ["id", "name", "address_lat", "address_lon", "phone", "doctors"]
 
-# secondary clinic serializer, supposed to be used to serialize clinic for doctor list
-class ClinicDoctorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Clinic
-        fields = ["id", "name", "address_lat", "address_lon", "phone"]
+# # secondary clinic serializer, supposed to be used to serialize clinic for doctor list
+# class ClinicDoctorSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Clinic
+#         fields = ["id", "name", "address_lat", "address_lon", "phone"]
 
 
 class EducationSerializer(serializers.ModelSerializer):
@@ -98,14 +98,14 @@ class DoctorSerializer(serializers.ModelSerializer):
     reviews = ReviewListSerializer(many=True, read_only=True)
     # clinic = serializers.PrimaryKeyRelatedField(
     #     queryset=Clinic.objects.all(), source='clinic.id', allow_null=True, required=False)
-    clinic = serializers.SlugRelatedField(
-        queryset=Clinic.objects.all(), slug_field='name', allow_null=True, required=False)
+    # clinic = serializers.SlugRelatedField(
+    #     queryset=Clinic.objects.all(), slug_field='name', allow_null=True, required=False)
     education = EducationSerializer(many=True, read_only=True)
     experience = ExperienceSerializer(many=True, read_only=True)
 
     class Meta:
         model = Doctor
-        fields = ["id","user", "speciality", "image", "reviews", "clinic", "appointment_fee", "patient_checked", "education", "experience"]
+        fields = ["id","user", "speciality", "image", "reviews", "appointment_fee", "patient_checked", "education", "experience", "clinic_name", "clinic_address_lat", "clinic_address_lon"]
         depth = 1
     
 

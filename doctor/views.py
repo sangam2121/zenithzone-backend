@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, generics
 from rest_framework.views import APIView
-from .models import Doctor, Review, Clinic, Education, Experience
+from .models import Doctor, Review, Education, Experience
 from django.db.models import Q
-from .serializers import DoctorSerializer, ReviewSerializer, ClinicSerializer, EducationSerializer, ExperienceSerializer,  ReviewListSerializer
+from .serializers import DoctorSerializer, ReviewSerializer, EducationSerializer, ExperienceSerializer,  ReviewListSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
@@ -131,56 +131,6 @@ class ReviewRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         except Exception as e:
             return Response({'error': 'Review could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-class ClinicListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Clinic.objects.all()
-    serializer_class = ClinicSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def get_queryset(self):
-        queryset = Clinic.objects.all()
-        name = self.request.query_params.get('name', None)
-        if name is not None:
-            queryset = queryset.filter(name__istartswith=name)
-        return queryset
-
-    def create(self, request, *args, **kwargs):
-        try:
-            response = super().create(request, *args, **kwargs)
-            response.data = {
-                'message': 'Clinic created successfully',
-                'clinic': response.data
-            }
-            return response
-        except Exception as e:
-            return Response({'error': 'Clinic could not be created: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ClinicRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Clinic.objects.all()
-    serializer_class = ClinicSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def update(self, request, *args, **kwargs):
-        try:
-            response = super().update(request, *args, **kwargs)
-            response.data = {
-                'message': 'Clinic updated successfully',
-                'clinic': response.data
-            }
-            return response
-        except Exception as e:
-            return Response({'error': 'Clinic could not be updated: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
-    def destroy(self, request, *args, **kwargs):
-        try:
-            response = super().destroy(request, *args, **kwargs)
-            response.data = {
-                'message': 'Clinic deleted successfully',
-                'clinic': response.data
-            }
-            return response
-        except Exception as e:
-            return Response({'error': 'Clinic could not be deleted: {}'.format(str(e)), 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EducationViewSet(viewsets.ModelViewSet):

@@ -12,8 +12,9 @@ class Doctor(models.Model):
     speciality = models.CharField(max_length=100, null=True, blank=True)
     image = models.ImageField(
         upload_to='doctor/profiles', default='default.png')
-    clinic = models.ForeignKey(
-        "Clinic", on_delete=models.CASCADE, null=True, blank=True, related_name="doctors")
+    clinic_name = models.CharField(max_length=100, null=True, blank=True)
+    clinic_address_lon = models.FloatField(null=True, blank=True)
+    clinic_address_lat = models.FloatField(null=True, blank=True)
     appointment_fee = models.IntegerField(default=0)
     patient_checked = models.PositiveIntegerField(default=0)
 
@@ -37,19 +38,6 @@ class Doctor(models.Model):
         ordering = ['-reviews__rating']
 
 
-class Clinic(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    address_lat = models.CharField(max_length=100)
-    address_lon = models.CharField(max_length=100)
-    phone = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name_plural = 'Clinics'
-        ordering = ['name']
 
 
 class Review(models.Model):
