@@ -127,6 +127,9 @@ class DoctorSerializer(serializers.ModelSerializer):
         instance.speciality = validated_data.get('speciality', instance.speciality)
         instance.image = validated_data.get('image', instance.image)
         instance.appointment_fee = validated_data.get('appointment_fee', instance.appointment_fee)
+        instance.clinic_name = validated_data.get('clinic_name', instance.clinic_name)
+        instance.clinic_address_lat = validated_data.get('clinic_address_lat', instance.clinic_address_lat)
+        instance.clinic_address_lon = validated_data.get('clinic_address_lon', instance.clinic_address_lon)
         instance.save()
         return instance
       
