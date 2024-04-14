@@ -61,6 +61,9 @@ class Review(models.Model):
         # check if the patient has already booked an appointment with the doctor
         if not self.patient.appointments.filter(doctor=self.doctor).exists():
             raise ValueError('You have not booked an appointment with this doctor!')
+        appointments = self.patient.appointments.filter(doctor=self.doctor)
+        # check if the patient has completed the appointment with the doctor
+        print(appointments)
         if not self.patient.appointments.filter(doctor=self.doctor, status='completed').exists():
             raise ValueError('You have not completed the appointment with this doctor!')
         super().save(*args, **kwargs)
