@@ -17,6 +17,9 @@ class ChatRoom(models.Model):
     def save(self, *args, **kwargs):
         if self.name is None:
             self.name = f"{self.participant1.first_name} - {self.participant2.first_name}"
+        if self.participant1 == self.participant2:
+            raise ValueError("Both participants cannot be the same user.")        
+
         super(ChatRoom, self).save(*args, **kwargs)
         
 
