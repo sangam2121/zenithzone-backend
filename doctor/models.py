@@ -65,6 +65,7 @@ class Review(models.Model):
         # check if the patient has completed the appointment with the doctor
         print(appointments)
         if not self.patient.appointments.filter(doctor=self.doctor, status='completed').exists():
+            print('here')
             raise ValueError('You have not completed the appointment with this doctor!')
         super().save(*args, **kwargs)
 

@@ -102,7 +102,7 @@ class InitPaymentView(View):
         if appointment_fee == 0:
             return JsonResponse({'error': 'Appointment fee is zero', 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
         url = "https://a.khalti.com/api/v2/epayment/initiate/"
-        return_url = "http://127.0.0.1:8000/" + \
+        return_url = "http://127.0.0.1:8000" + \
             reverse('callback')
         name = user.first_name + " " + user.last_name
         email = user.email
