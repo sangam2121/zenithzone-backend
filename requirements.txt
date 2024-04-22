@@ -10,3 +10,4 @@ requests
 django-cors-headers
 python-decouple
 daphne
+psycopg2

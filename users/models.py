@@ -1,9 +1,9 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
-import uuid
+import uuid, jwt, datetime
 from django.contrib.auth.hashers import make_password
-
-
+from django.conf import settings
+import random
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email,user_type, password=None, **extra_fields):
@@ -27,6 +27,27 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Super User must have superuser permission!")
         return self.create_user(email, user_type, password, **extra_fields)
 
+class OTPstore(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=8)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def verify_otp(self, otp):
+        if self.otp == otp:
+            return True
+        return False
+
+    
+    class Meta:
+        verbose_name = 'OTP Store'
+        verbose_name_plural = 'OTP Stores'
+        unique_together = ['email']
 
 class CustomUser(AbstractBaseUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -75,3 +96,19 @@ class CustomUser(AbstractBaseUser):
     @property
     def is_admin(self):
         return self.user_type == 'admin'
+
+    # @property
+    def get_reset_password_token(self, expires_in=600):
+        splitted_id = str(int(self.id))[-4:]
+        while True:
+            random_token = str(random.randint(1000, 9999))
+            xord_val = str(int(splitted_id) ^ int(random_token))
+            if len(xord_val) == 4:
+                break
+        token = random_token + xord_val
+        otp_store = OTPstore.objects.get_or_create(email=self.email)[0]
+        print("OTP Store: ", otp_store)
+        otp_store.otp = token
+        otp_store.save()
+        return token
+

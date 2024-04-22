@@ -18,6 +18,6 @@ urlpatterns = [
     path('payment/details/<slug:pk>/', PaymentUpdateDeleteView.as_view(), name='payment-details'),
     path('delete/<slug:pk>/', AppointmentDeleteView.as_view(), name='delete'),
     path('front-end/', go_to_front_end, name='front-end'),
-    path('complete/<slug:pk>/', CompleteAppointmentView.as_view(), name='complete-appointment'),
+    path('complete/', CompleteAppointmentView.as_view(), name='complete-appointment'),
     path('reschedule/', RescheduleAppointmentView.as_view(), name='reschedule-appointment'),
 ]

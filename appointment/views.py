@@ -290,9 +290,18 @@ class PaymentUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CompleteAppointmentView(APIView):
+    # check logged in user is doctor
+
+
     def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return Response({'error': 'You are not authorized to complete this appointment', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
         appointment_id = request.data.get('appointment_id')
         appointment = Appointment.objects.get(id=appointment_id)
+        if not appointment:
+            return Response({'error': 'Appointment not found', 'status': f'{status.HTTP_400_BAD_REQUEST}'}, status=status.HTTP_400_BAD_REQUEST)
+        if appointment.doctor != request.user.doctor:
+            return Response({'error': 'You are not authorized to complete this appointment', 'status': f'{status.HTTP_403_FORBIDDEN}'}, status=status.HTTP_403_FORBIDDEN)
         appointment.status = 'completed'
         appointment.save()
         return Response({'message': 'Appointment completed successfully', 'status': f'{status.HTTP_200_OK}'}, status=status.HTTP_200_OK)
