@@ -4,7 +4,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from .models import ChatRoom, Message
 from users.models import CustomUser
 from asgiref.sync import sync_to_async
-
+from django.utils import timezone
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
@@ -23,7 +23,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "chat_room": str(message.chat_room.id),
             "sender": str(message.sender.id),
             "content": message.content,
-            "created_at": message.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            "created_at": timezone.localtime(message.created_at).strftime("%Y-%m-%d %H:%M:%S")
         }
 
     def getMessageData(self, message):
@@ -32,7 +32,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "chat_room": str(message.chat_room.id),
             "sender": str(message.sender.id),
             "content": message.content,
-            "created_at": message.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            "created_at": timezone.localtime(message.created_at).strftime("%Y-%m-%d %H:%M:%S")
         }
 
     async def connect(self):

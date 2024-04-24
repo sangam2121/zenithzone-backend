@@ -31,6 +31,8 @@ class MessageListAPIView(generics.ListAPIView):
 
         return queryset
 
+
+
 class ChatRoomListAPIView(generics.ListAPIView):
     queryset = ChatRoom.objects.all()
     serializer_class = ChatRoomSerializer
@@ -38,12 +40,15 @@ class ChatRoomListAPIView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        try:
-            queryset = ChatRoom.objects.all().filter(
-                Q(participant1=self.request.user) | Q(participant2=self.request.user))
-        except:
-            queryset = ChatRoom.objects.none()
+        queryset = super().get_queryset()
+        queryset = queryset.filter(Q(participant1=self.request.user) | Q(participant2=self.request.user))
+
         participant = self.request.query_params.get('participant', None)
         if participant is not None:
             queryset = queryset.filter(Q(participant1=participant) | Q(participant2=participant))
+
+        participant_name = self.request.query_params.get('participant_name', None)
+        if participant_name is not None:
+            queryset = queryset.filter(Q(participant1__first_name=participant_name) | Q(participant2__first_name=participant_name) | Q(participant1__last_name=participant_name) | Q(participant2__last_name=participant_name))
+
         return queryset

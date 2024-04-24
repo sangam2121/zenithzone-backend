@@ -26,8 +26,11 @@ def delete_appointment(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Appointment)
 def notice_to_doctor(sender, instance, created, **kwargs):
-    if created:
+    print("Hello here")
+    if not created:
+        print("Hello here2")
         if instance.status == 'approved':
+            print("Hello here3")
             doctor = instance.doctor
             patient_name = instance.patient.user.first_name.title() + ' ' + instance.patient.user.last_name.title()
             from_email =  settings.EMAIL_HOST_USER
@@ -45,8 +48,11 @@ def notice_to_doctor(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Appointment)
 def notice_to_patient(sender, instance, created, **kwargs):
-    if created:
+    print("Hello here")
+    if not created:
+        print("Hello here2")
         if instance.status == 'approved':
+            print("Hello here3")
             patient = instance.patient
             patient_name = patient.user.first_name.title() + ' ' + patient.user.last_name.title()
             from_email =  settings.EMAIL_HOST_USER
